@@ -38,15 +38,28 @@ class ExampleGame extends FlameGame
   Vector2? lastDragPosition; //Last Known Drag Position
   Vector2? lastDragStart; //Last Known Drag Start Position
 
+  //Variable that contains the data to create the Graph Object
   Map<Node, Set<Node>> directedGraphTree = {};
   Map<Node, Set<Node>> unDirectedGraphTree = {};
 
+  //List of Labels for the node
   List<String> nodeLabels = ['A', 'B', 'C', 'D', 'E'];
 
+  Map<String, int> characteristicVector = {
+    "L0": 0,
+    "L1": 0,
+    "L2": 0,
+    "L3": 0,
+    "L4": 0,
+    "L5": 0,
+  };
+
+  //Graph Objects
   DirectedGraph<Node>? directedGraph;
   DirectedGraph<Node>? unDirectedGraph;
 
-  Paint debugPaint = Paint()
+  //Painter used for painting the lines
+  Paint linesPainter = Paint()
     ..color = Colors.pink
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2;
@@ -98,8 +111,9 @@ class ExampleGame extends FlameGame
 
     if (listOfNodes.length == 5) {
       //If 5 Nodes are added then, tapping again clears the board.
-      listOfPaths.clear();
-      tempPath = null;
+      // listOfPaths.clear();
+      // tempPath = null;
+      _calculateCharacteristicVector();
     } else {
       if (!insideGrid(position)) return;
 
@@ -120,6 +134,7 @@ class ExampleGame extends FlameGame
     super.onTapUp(pointerId, info);
   }
 
+  @override
   void onDragStart(int pointerId, DragStartInfo info) {
     super.onDragStart(pointerId, info);
     final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
@@ -129,6 +144,7 @@ class ExampleGame extends FlameGame
     lastDragStart = position;
   }
 
+  @override
   void onDragUpdate(int pointerId, DragUpdateInfo event) {
     super.onDragUpdate(pointerId, event);
     final position = state.unitSystem.pixelToGrid(event.eventPosition.global);
@@ -137,6 +153,7 @@ class ExampleGame extends FlameGame
     lastDragPosition = position;
   }
 
+  @override
   void onDragEnd(int pointerId, DragEndInfo event) {
     super.onDragEnd(pointerId, event);
 
@@ -199,35 +216,137 @@ class ExampleGame extends FlameGame
     super.render(canvas);
 
     listOfPaths.forEach((element) {
-      canvas.drawPath(element, debugPaint);
+      canvas.drawPath(element, linesPainter);
     });
 
-    //canvas.drawPath(tempPath!, debugPaint);
+    // if (unDirectedGraph!.cycle.isNotEmpty) {
+    //   print("Graph contains cycles!! Cycle: " +
+    //       unDirectedGraph!.cycle.toString());
+    //   listOfPaths.clear();
+    // }
 
-    print("Shortest PATH");
-    print(directedGraph!.crawler.path(listOfNodes[0], listOfNodes[1]));
-    print(directedGraph!.topologicalOrdering);
-    print(unDirectedGraph!.cycle);
-    // var componentsTest = stronglyConnectedComponents<Node>(
-    //     graph.nodes.keys, (node) => graph.nodes[node] ?? []);
+    //canvas.drawPath(tempPath!, linesPainter);
 
-    // print(componentsTest);
+    // print("Shortest Path");
+    // print(directedGraph!.crawler.path(listOfNodes[0], listOfNodes[1]));
+    // List<Node> shortestPath = [];
+    // Map<String, int> characteristicVector = {
+    //   "L0": 0,
+    //   "L1": 0,
+    //   "L2": 0,
+    //   "L3": 0,
+    //   "L4": 0,
+    //   "L5": 0,
+    // };
+
+    // listOfNodes.forEach((startNode) {
+    //   print("Shortest Path For Node " + startNode.label);
+    //   listOfNodes.forEach((targetNode) {
+    //     if (startNode == targetNode) return;
+    //     shortestPath = directedGraph!.crawler.path(startNode, targetNode);
+    //     print(
+    //       "Path From Node " +
+    //           startNode.label +
+    //           " To Node " +
+    //           targetNode.label +
+    //           " is " +
+    //           shortestPath.toString(),
+    //     );
+    //     characteristicVector["L" + (shortestPath.length - 1).toString()] =
+    //         characteristicVector["L" + (shortestPath.length - 1).toString()]! +
+    //             1;
+    //   });
+    // });
+
+    // var newList = listOfNodes;
+
+    // listOfNodes.forEach((startNode) {
+    //   if (listOfNodes.indexOf(startNode) > 0)
+    //     newList.removeAt(newList.indexOf(startNode));
+    //   newList.forEach((targetNode) {
+    //     if (startNode == targetNode) return;
+    //     shortestPath = directedGraph!.crawler.path(startNode, targetNode);
+    //     print(
+    //       "Path From Node " +
+    //           startNode.label +
+    //           " To Node " +
+    //           targetNode.label +
+    //           " is " +
+    //           shortestPath.toString(),
+    //     );
+    //     characteristicVector["L" + (shortestPath.length - 1).toString()] =
+    //         characteristicVector["L" + (shortestPath.length - 1).toString()]! +
+    //             1;
+    //   });
+    // });
+
+    // print(characteristicVector);
   }
 
-  // void renderNodes(int numberOfNodes) {
-  //   Vector2 randomPoint;
-  //   ColorPoint newPoint;
+  void _calculateCharacteristicVector() {
+    List<Node> newList = [];
 
-  //   for (var i = 0; i < 1; i++) {
-  //     randomPoint = getRandomGridPoint();
-  //     if (nodePositions.contains(randomPoint)) i--; //run loop again ;)
+    newList.addAll(listOfNodes);
 
-  //     nodePositions.add(randomPoint);
-  //     newPoint = ColorPoint(randomPoint, state);
+    List<Node> shortestPath = [];
+    Map<String, int> characteristicVector = {
+      "L0": 0,
+      "L1": 0,
+      "L2": 0,
+      "L3": 0,
+      "L4": 0,
+      "L5": 0,
+    };
 
-  //     componentList.add(newPoint);
+    // listOfNodes.forEach((startNode) {
+    //   if (listOfNodes.indexOf(startNode) > 0)
+    //     newList.removeAt(newList.indexOf(startNode));
+    //   newList.forEach((targetNode) {
+    //     if (startNode == targetNode) return;
+    //     shortestPath = directedGraph!.crawler.path(startNode, targetNode);
+    //     print(
+    //       "Path From Node " +
+    //           startNode.label +
+    //           " To Node " +
+    //           targetNode.label +
+    //           " is " +
+    //           shortestPath.toString(),
+    //     );
+    //     characteristicVector["L" + (shortestPath.length - 1).toString()] =
+    //         characteristicVector["L" + (shortestPath.length - 1).toString()]! +
+    //             1;
+    //   });
+    // });
 
-  //     add(newPoint);
-  //   }
-  // }
+    for (var i = 0; i < listOfNodes.length; i++) {
+      if (i > 0) newList.removeAt(0);
+      for (var j = 0; j < newList.length; j++) {
+        if (listOfNodes[i] == newList[j]) {
+          print(
+            "Path From Node " +
+                listOfNodes[i].label +
+                " To Node " +
+                newList[j].label,
+          );
+        } else {
+          shortestPath =
+              directedGraph!.crawler.path(listOfNodes[i], newList[j]);
+          print(
+            "Path From Node " +
+                listOfNodes[i].label +
+                " To Node " +
+                newList[j].label +
+                " is " +
+                shortestPath.toString(),
+          );
+          characteristicVector["L" + (shortestPath.length - 1).toString()] =
+              characteristicVector[
+                      "L" + (shortestPath.length - 1).toString()]! +
+                  1;
+        }
+      }
+    }
+
+    print(characteristicVector);
+  }
 }
