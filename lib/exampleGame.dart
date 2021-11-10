@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:math';
 import 'dart:ui';
 
@@ -5,10 +6,10 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
-import 'package:mazeball2021/Node.dart';
-import 'package:mazeball2021/colorPoint.dart';
 import 'package:flame/game.dart';
 import 'package:directed_graph/directed_graph.dart';
+import 'package:game_of_trees/Node.dart';
+import 'package:game_of_trees/colorPoint.dart';
 
 import 'gameState.dart';
 import 'gridLayer.dart';
@@ -17,23 +18,35 @@ import 'unitSystem.dart';
 class ExampleGame extends FlameGame
     with HasDraggableComponents, HasTappableComponents {
   late GameState state;
-  GridLayer? gridLayer;
-  List<Path> listOfPaths = [];
-  Path? tempPath;
-  List<Vector2> nodePositions = [];
-  List<ColorPoint> componentList = [];
-  bool isMovable = false;
-  List<Node> listOfNodes = [];
-  Vector2? lastDragPosition;
-  Vector2? lastDragStart;
-  Map<Node, List<Node>> graphTree = {};
-  int counter = 0;
-  List<String> nodeNames = ['A', 'B', 'C', 'D', 'E'];
-  Map<Node, Set<Node>> newDirectedGraph = {};
-  DirectedGraph<Node>? graph;
-  //Matrix incidenceMatrix = Matrix.generate(5, 5);
+  GridLayer? gridLayer; //Draws the Grid
 
-  final Paint debugPaint = Paint()
+  List<Path> listOfPaths = []; //Contains all the paths (Edges or Lines)
+
+  Path?
+      tempPath; //temporary variable used to calculate the path before it is final
+
+  List<Vector2> nodePositions = []; //Stores the Node Positions on the grid
+
+  // List<ColorPoint> componentList =
+  //     []; //Stores the number of Components on the Grid Currently
+
+  bool isMovable = false; //Check if the nodes are movable or not
+
+  List<Node> listOfNodes = []; //Stores the Nodes (Objects)
+
+  //Used for calculating tempPath
+  Vector2? lastDragPosition; //Last Known Drag Position
+  Vector2? lastDragStart; //Last Known Drag Start Position
+
+  Map<Node, Set<Node>> directedGraphTree = {};
+  Map<Node, Set<Node>> unDirectedGraphTree = {};
+
+  List<String> nodeLabels = ['A', 'B', 'C', 'D', 'E'];
+
+  DirectedGraph<Node>? directedGraph;
+  DirectedGraph<Node>? unDirectedGraph;
+
+  Paint debugPaint = Paint()
     ..color = Colors.pink
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2;
@@ -41,7 +54,6 @@ class ExampleGame extends FlameGame
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    //renderNodes(5);
   }
 
   @override
@@ -53,29 +65,12 @@ class ExampleGame extends FlameGame
   }
 
   Path getLineBetween(Vector2 startPoint, Vector2 endPoint) {
-    // final gridPath = AStar(
-    //   rows: GRID_HEIGHT + 1,
-    //   columns: GRID_WIDTH + 1,
-    //   start: startPoint.toOffset(),
-    //   end: endPoint.toOffset(),
-    //   barriers: [], //Add points here to prevent the path passing
-    // ).findThePath().reversed.toList();
-
     final start = state.unitSystem.gridToPixelFrom(vector: startPoint);
-
-    final newPath = Path();
-    newPath.moveTo(start.x, start.y);
-
-    // gridPath
-    //     .map((pathFindingOffset) =>
-    //         state.unitSystem.gridToPixelFrom(offset: pathFindingOffset))
-    //     .forEach((gridPosition) {
-    //   newPath.lineTo(gridPosition.x, gridPosition.y);
-    // });
-
     var end = state.unitSystem.gridToPixelFrom(vector: endPoint);
-    newPath.lineTo(end.x, end.y);
-    return newPath;
+
+    return Path()
+      ..moveTo(start.x, start.y)
+      ..lineTo(end.x, end.y);
   }
 
   void resetElements() {
@@ -87,71 +82,59 @@ class ExampleGame extends FlameGame
   void addPointOnGrid(Vector2 point) => add(ColorPoint(point, state));
 
   bool insideGrid(Vector2 point) {
-    if (point.x >= 0 &&
+    return (point.x >= 0 &&
         point.y >= 0 &&
         point.x <= GRID_WIDTH &&
-        point.y <= GRID_HEIGHT) {
-      return true;
-    }
-    return false;
+        point.y <= GRID_HEIGHT);
   }
 
   bool isAtNode(Vector2 point) {
     return listOfNodes.any((element) => element.positionOnGrid == point);
   }
 
-  Vector2 getRandomGridPoint() {
-    double randomX = Random().nextDouble() * GRID_WIDTH;
-    double randomY = Random().nextDouble() * GRID_HEIGHT;
-    return Vector2(randomX.truncateToDouble(), randomY.truncateToDouble());
-  }
-
   @override
   void onTapUp(int pointerId, TapUpInfo info) {
-    if (componentList.length == 5) {
+    final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
+
+    if (listOfNodes.length == 5) {
+      //If 5 Nodes are added then, tapping again clears the board.
       listOfPaths.clear();
       tempPath = null;
     } else {
-      if (!insideGrid(state.unitSystem.pixelToGrid(info.eventPosition.global)))
-        return;
-      add(ColorPoint(
-          state.unitSystem.pixelToGrid(info.eventPosition.global), state));
-      componentList.add(ColorPoint(info.eventPosition.global, state));
+      if (!insideGrid(position)) return;
 
-      Node tempNode = new Node(nodeNames[counter], 5,
-          state.unitSystem.pixelToGrid(info.eventPosition.global));
+      add(
+        ColorPoint(position, state),
+      ); //Adding to the Game Component List
 
-      listOfNodes.add(tempNode);
-
-      graphTree[tempNode] = [];
-      counter++;
+      listOfNodes.add(
+        Node(
+          label: nodeLabels[listOfNodes.length],
+          positionOnGrid: position,
+        ),
+      );
+      //Assign an Empty Set to the Node Key in the GraphTree object (Not Linked to anything since it was just created)
+      directedGraphTree[listOfNodes[listOfNodes.length - 1]] = {};
+      unDirectedGraphTree[listOfNodes[listOfNodes.length - 1]] = {};
     }
     super.onTapUp(pointerId, info);
   }
 
   void onDragStart(int pointerId, DragStartInfo info) {
     super.onDragStart(pointerId, info);
-    final startPointOnGrid =
-        state.unitSystem.pixelToGrid(info.eventPosition.global);
-    //resetElements();
-    if (!insideGrid(startPointOnGrid)) return;
-    if (!isAtNode(startPointOnGrid)) return;
-    lastDragPosition = startPointOnGrid;
-    lastDragStart = startPointOnGrid;
+    final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
+    if (!insideGrid(position)) return;
+    if (!isAtNode(position)) return;
+    lastDragPosition = position;
+    lastDragStart = position;
   }
 
   void onDragUpdate(int pointerId, DragUpdateInfo event) {
     super.onDragUpdate(pointerId, event);
-    final nextPoint = state.unitSystem.pixelToGrid(event.eventPosition.global);
-    if (!insideGrid(nextPoint) || lastDragStart == null) return;
-
-    if (isMovable) {
-      remove(componentList
-          .firstWhere((element) => element.gridPosition == lastDragStart));
-    } else {
-      tempPath = getLineBetween(lastDragStart!, nextPoint);
-      lastDragPosition = nextPoint;
-    }
+    final position = state.unitSystem.pixelToGrid(event.eventPosition.global);
+    if (!insideGrid(position) || lastDragStart == null) return;
+    tempPath = getLineBetween(lastDragStart!, position);
+    lastDragPosition = position;
   }
 
   void onDragEnd(int pointerId, DragEndInfo event) {
@@ -159,46 +142,61 @@ class ExampleGame extends FlameGame
 
     if (lastDragPosition != null && lastDragStart != null) {
       if (!insideGrid(lastDragPosition!)) return;
+      if (!isAtNode(lastDragPosition!)) resetElements();
 
-      if (isMovable) {
-        add(ColorPoint(lastDragPosition!, state));
-      } else {
-        if (!isAtNode(lastDragPosition!)) resetElements();
-        //addPointOnGrid(lastDragPosition!);
-        var finalPath = getLineBetween(lastDragStart!, lastDragPosition!);
-        listOfPaths.add(finalPath);
-
-        int indexOfStartingNode = listOfNodes
-            .indexWhere((element) => element.positionOnGrid == lastDragStart!);
-        int indexOfEndingNode = listOfNodes.indexWhere(
-            (element) => element.positionOnGrid == lastDragPosition!);
-
-        List<Node> newValue = graphTree[listOfNodes[indexOfStartingNode]]!;
-
-        newValue.add(listOfNodes[indexOfEndingNode]);
-
-        graphTree.update(
-          listOfNodes[indexOfStartingNode],
-          (value) => newValue,
-        ); //Add to the correct
-
-        newValue = graphTree[listOfNodes[indexOfEndingNode]]!;
-
-        newValue.add(listOfNodes[indexOfStartingNode]);
-
-        //Add to the opposite
-        graphTree.update(listOfNodes[indexOfEndingNode], (value) => newValue);
-      }
+      var finalPath = getLineBetween(lastDragStart!, lastDragPosition!);
+      listOfPaths.add(finalPath);
+      updateGraphStructures();
     }
+  }
+
+  void updateGraphStructures() {
+    //Get the index of the node where the starting position and the ending position is that node.
+    int indexOfStartingNode = listOfNodes
+        .indexWhere((element) => element.positionOnGrid == lastDragStart!);
+    int indexOfEndingNode = listOfNodes
+        .indexWhere((element) => element.positionOnGrid == lastDragPosition!);
+
+    //Get the set of nodes for the starting node
+    Set<Node> currentSetOfNodesDirected =
+        directedGraphTree[listOfNodes[indexOfStartingNode]]!;
+
+    Set<Node> currentSetOfNodesUnDirected =
+        unDirectedGraphTree[listOfNodes[indexOfStartingNode]]!;
+
+    //Add the Ending node to the current set
+    currentSetOfNodesDirected.add(listOfNodes[indexOfEndingNode]);
+    currentSetOfNodesUnDirected.add(listOfNodes[indexOfEndingNode]);
+
+    directedGraphTree.update(
+      listOfNodes[indexOfStartingNode],
+      (value) => currentSetOfNodesDirected,
+    ); //Add to the correct
+
+    unDirectedGraphTree.update(
+      listOfNodes[indexOfStartingNode],
+      (value) => currentSetOfNodesUnDirected,
+    ); //Add correct to the undirected tree to check for cycles
+
+    //Get the set of nodes for the ending node
+    currentSetOfNodesDirected =
+        directedGraphTree[listOfNodes[indexOfEndingNode]]!;
+
+    //Add the Starting node to the current set
+    currentSetOfNodesDirected.add(listOfNodes[indexOfStartingNode]);
+
+    //Add reverse direction to make it into a directed Graph
+    directedGraphTree.update(
+        listOfNodes[indexOfEndingNode], (value) => currentSetOfNodesDirected);
+
+    directedGraph = new DirectedGraph(directedGraphTree);
+    unDirectedGraph = new DirectedGraph(unDirectedGraphTree);
   }
 
   @override
   void render(Canvas canvas) {
     gridLayer?.render(canvas);
     super.render(canvas);
-    // if (tempPath != null) {
-    //   canvas.drawPath(tempPath!, debugPaint);
-    // }
 
     listOfPaths.forEach((element) {
       canvas.drawPath(element, debugPaint);
@@ -206,17 +204,10 @@ class ExampleGame extends FlameGame
 
     //canvas.drawPath(tempPath!, debugPaint);
 
-    graphTree.forEach((key, value) {
-      newDirectedGraph[key] = value.toSet();
-    });
-
-    graph = DirectedGraph(newDirectedGraph);
-
     print("Shortest PATH");
-    print(graph!.crawler.path(listOfNodes[0], listOfNodes[1]));
-    //print(graph!.topologicalOrdering);
-    //print(graph!.cycle);
-
+    print(directedGraph!.crawler.path(listOfNodes[0], listOfNodes[1]));
+    print(directedGraph!.topologicalOrdering);
+    print(unDirectedGraph!.cycle);
     // var componentsTest = stronglyConnectedComponents<Node>(
     //     graph.nodes.keys, (node) => graph.nodes[node] ?? []);
 

@@ -1,6 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:mazeball2021/exampleGame.dart';
+import 'package:game_of_trees/exampleGame.dart';
 
 class MainGameScreen extends StatefulWidget {
   MainGameScreen({Key? key}) : super(key: key);
