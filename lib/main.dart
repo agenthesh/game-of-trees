@@ -1,6 +1,10 @@
 import 'package:flame/flame.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Model/demoModel.dart';
+import 'package:game_of_trees/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'mainGameScreen.dart';
@@ -11,7 +15,11 @@ void main() async {
   //Setup all that needs to be ready BEFORE we start the app
   await setupBase();
   print('Ready to rumble');
-  runApp(MyApp());
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 Future setupBase() async {
@@ -29,12 +37,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: new ThemeData(scaffoldBackgroundColor: const Color(0xFFEFEFEF)),
       debugShowCheckedModeBanner: false,
       title: 'Example',
-      initialRoute: '/game',
+      initialRoute: '/home',
       routes: {
         //'/': (contex) => SplashScreen(),
-        '/game': (context) => MainGameScreen(),
+        '/home': (context) => HomeScreen(),
+        '/game': (context) => MainGameScreen(
+              characteristicVector: {},
+            ),
       },
     );
   }
