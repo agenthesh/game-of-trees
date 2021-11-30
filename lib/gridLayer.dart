@@ -2,12 +2,12 @@ import 'package:flame/layers.dart';
 import 'package:flutter/material.dart';
 
 import 'gameState.dart';
-import 'unitSystem.dart';
+import 'Model/unitSystem.dart';
 
 class GridLayer extends PreRenderedLayer {
   final GameState state;
   final paint = Paint()
-    ..color = Colors.white
+    ..color = Colors.grey[800]!
     ..style = PaintingStyle.stroke;
 
   GridLayer(this.state);
