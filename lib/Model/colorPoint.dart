@@ -1,10 +1,9 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-import 'gameState.dart';
+import '../gameState.dart';
 
 class ColorPoint extends PositionComponent {
   late final Vector2 gridPosition;

@@ -1,11 +1,5 @@
 import 'package:flame/components.dart';
 
-class Graph {
-  final Map<Node, List<Node>> nodes;
-
-  Graph(this.nodes);
-}
-
 class Node implements Comparable<dynamic> {
   final String label;
   final Vector2 positionOnGrid;
