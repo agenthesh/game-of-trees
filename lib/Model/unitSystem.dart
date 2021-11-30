@@ -12,13 +12,25 @@ const double PLAYING_FIELD_HEIGHT = 2.00 * SCALE_WORLD_MULTIPLIER;
 const double PLAYING_FIELD_WIDTH = 1.10 * SCALE_WORLD_MULTIPLIER;
 
 // - Grid size
-const int GRID_VERT_WIDTH = 5;
-const int GRID_VERT_HEIGHT = 10;
+const int GRID_VERT_WIDTH = 6;
+const int GRID_VERT_HEIGHT = 11;
 const int GRID_WIDTH = GRID_VERT_WIDTH + 1;
 const int GRID_HEIGHT = GRID_VERT_HEIGHT + 1;
 const double GRID_CELL_GAP = PLAYING_FIELD_WIDTH / GRID_WIDTH;
 
 class UnitSystem {
+  final double screenHeightInPixels;
+  final double screenWidthInPixels;
+  final double playingFieldToScreenRatio;
+  final double appBarHeight;
+
+  UnitSystem({
+    required this.screenHeightInPixels,
+    required this.screenWidthInPixels,
+    required this.playingFieldToScreenRatio,
+    required this.appBarHeight,
+  });
+
   // Getters
   double get pixelsInMeter =>
       screenHeightInPixels / PLAYING_FIELD_HEIGHT * playingFieldToScreenRatio;
@@ -31,23 +43,28 @@ class UnitSystem {
   Vector2 get activeAreaOffset =>
       playingFieldOffset + Vector2(gridCellGap, gridCellGap);
 
-  final double screenHeightInPixels;
-  final double screenWidthInPixels;
-  final double playingFieldToScreenRatio;
-
   // Utility methods
   Vector2 metersToPixels(Vector2 meters) =>
       Vector2(meters.x, meters.y) * pixelsInMeter;
 
   Vector2 pixelToGrid(Vector2 pixelCoordinates) {
     final dragPixelPosition = pixelCoordinates;
-    final dragCorrectedPixelPosition = dragPixelPosition - activeAreaOffset;
+    // print("DRAG PIXEL POSITION: $dragPixelPosition");
+    // print("activeAreaOffset: $activeAreaOffset");
+    final dragCorrectedPixelPosition = dragPixelPosition -
+        (activeAreaOffset +
+            Vector2(0, appBarHeight)); //need to take the app bar size here
+    // print("dragCorrectedPixelPosition: $dragCorrectedPixelPosition");
     final dragGridPosition = dragCorrectedPixelPosition / gridCellGap;
+    // print("gridCellGap: $gridCellGap");
+    // print("dragGridPosition: $dragGridPosition");
     final dragGridPositionRounded = Vector2(
             dragGridPosition.x.round().toDouble(),
             dragGridPosition.y.round().toDouble()) +
         Vector2.all(1);
 
+    // print("dragGridPositionRounded: $dragGridPositionRounded");
+    // print("----------------------------------------------");
     return dragGridPositionRounded;
   }
 
@@ -65,7 +82,4 @@ class UnitSystem {
     result.add(Vector2(x * gridCellGap, y * gridCellGap));
     return result;
   }
-
-  UnitSystem(this.screenHeightInPixels, this.screenWidthInPixels,
-      {this.playingFieldToScreenRatio = 0.85});
 }
