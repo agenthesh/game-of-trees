@@ -1,7 +1,7 @@
-import 'unitSystem.dart';
+import 'Model/unitSystem.dart';
 
 class GameState {
   late UnitSystem unitSystem;
 
-  GameState(this.unitSystem);
+  GameState({required this.unitSystem});
 }
