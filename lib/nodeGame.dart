@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/gestures.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +5,6 @@ import 'package:flame/game.dart';
 import 'package:directed_graph/directed_graph.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/Model/Node.dart';
-import 'package:game_of_trees/Model/characteristicVectorAnswers.dart';
-import 'package:game_of_trees/Model/demoModel.dart';
 import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/Model/colorPoint.dart';
 
@@ -25,6 +22,9 @@ class ExampleGame extends BaseGame
 
   late GameState state;
   Rect? bgRect;
+
+  //Number of nodes this game has
+  int numberOfNodes;
 
   ///Actual object that draws the GridLayer on the Screen
   GridLayer? gridLayer;
@@ -56,14 +56,30 @@ class ExampleGame extends BaseGame
   Map<Node, Set<Node>> unDirectedGraphTree = {};
 
   ///List of Labels for the node
-  List<String> nodeLabels = ['A', 'B', 'C', 'D', 'E'];
+  List<String> nodeLabels = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+  ];
 
   //Graph Objects
   /// Graph Object that stores the directed graph drawn on the screen
-  DirectedGraph<Node>? directedGraph;
+  DirectedGraph<Node> directedGraph = DirectedGraph({});
 
   /// Graph Object that stores the undirected graph drawn on the screen
-  DirectedGraph<Node>? unDirectedGraph;
+  DirectedGraph<Node> unDirectedGraph = DirectedGraph({});
 
   ///Painter used for painting the lines
   Paint linesPainter = Paint()
@@ -72,6 +88,7 @@ class ExampleGame extends BaseGame
     ..strokeWidth = 2;
 
   ExampleGame({
+    required this.numberOfNodes,
     required this.appBarHeight,
     required this.context,
     required this.ref,
@@ -125,18 +142,46 @@ class ExampleGame extends BaseGame
     listOfPaths.clear();
     listOfNodes.clear();
     components.clear();
-    ref.read(remainingNodeProvider.state).state = 5;
-    ref.read(cvCheckProvider.state).state = false;
+    unDirectedGraph.clear();
+    directedGraph.clear();
+    ref.read(remainingNodeProvider.notifier).state = numberOfNodes;
+    ref.read(cvCheckProvider.notifier).state = false;
     tempPath = null;
+  }
+
+  void removeNodeConnections(Vector2 position) {
+    // get the node
+
+    Node nodeToBeReset = listOfNodes
+        .where((element) => element.positionOnGrid == position)
+        .first; // Getting the node
+
+    //need to remove from undirected graph tree as well
+
+    unDirectedGraph.removeEdges(
+        nodeToBeReset, unDirectedGraph.edges(nodeToBeReset).toSet());
+
+    //updateGraphStructures();
+
+    //remove the path where all the paths beginning is this node
+
+    // //update graph structures
+    // print("hello");
+    // print(unDirectedGraph.edges());
   }
 
   @override
   void onTapUp(int pointerId, TapUpInfo info) {
     final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
 
-    if (listOfNodes.length < 5) {
+    // isAtNode(position)
+    //     ? removeNodeConnections(position)
+    //     : print("idk why this not work");
+
+    if (listOfNodes.length < numberOfNodes) {
       if (!insideGrid(position)) return;
-      ref.read(remainingNodeProvider.state).state = (4 - listOfNodes.length);
+      ref.read(remainingNodeProvider.notifier).state =
+          ((numberOfNodes - 1) - listOfNodes.length);
 
       add(
         ColorPoint(position, state),
@@ -244,6 +289,19 @@ class ExampleGame extends BaseGame
     listOfPaths.forEach((element) {
       canvas.drawPath(element, linesPainter);
     });
+
+    //   listOfNodes.forEach(
+    //     (startNode) {
+    //       unDirectedGraph.edges(startNode).forEach(
+    //         (endNode) {
+    //           canvas.drawPath(
+    //               getLineBetween(
+    //                   startNode.positionOnGrid, endNode.positionOnGrid),
+    //               linesPainter);
+    //         },
+    //       );
+    //     },
+    //   );
   }
 
   Map<String, int> calculateCharacteristicVector() {
@@ -253,14 +311,14 @@ class ExampleGame extends BaseGame
       newList.addAll(listOfNodes);
 
       List<Node> shortestPath = [];
-      Map<String, int> characteristicVector = {
-        "L0": 5,
-        "L1": 0,
-        "L2": 0,
-        "L3": 0,
-        "L4": 0,
-        "L5": 0,
-      };
+
+      Map<String, int> templateCharVector = {};
+
+      for (var i = 0; i <= numberOfNodes; i++) {
+        i == 0
+            ? templateCharVector["L${i.toString()}"] = numberOfNodes
+            : templateCharVector["L${i.toString()}"] = 0;
+      } //creates the template characteristic vector that is filled in with the below loop
 
       for (var i = 0; i < listOfNodes.length; i++) {
         if (i > 0) newList.removeAt(0);
@@ -274,7 +332,7 @@ class ExampleGame extends BaseGame
             );
           } else {
             shortestPath =
-                directedGraph!.crawler.path(listOfNodes[i], newList[j]);
+                directedGraph.crawler.path(listOfNodes[i], newList[j]);
             print(
               "Path From Node " +
                   listOfNodes[i].label +
@@ -283,16 +341,16 @@ class ExampleGame extends BaseGame
                   " is " +
                   shortestPath.toString(),
             );
-            characteristicVector["L" + (shortestPath.length - 1).toString()] =
-                characteristicVector[
+            templateCharVector["L" + (shortestPath.length - 1).toString()] =
+                templateCharVector[
                         "L" + (shortestPath.length - 1).toString()]! +
                     1;
           }
         }
       }
-      ref.read(cvProvider.state).state = characteristicVector.toString();
-      print(characteristicVector);
-      return characteristicVector;
+      ref.read(cvProvider.notifier).state = templateCharVector;
+      print(templateCharVector);
+      return templateCharVector;
     } catch (e) {
       print(e);
       return {};
@@ -302,9 +360,9 @@ class ExampleGame extends BaseGame
   void checkCharVector() {
     if (characteristicVectorAnswer.toString() ==
         calculateCharacteristicVector().toString()) {
-      ref.read(cvCheckProvider.state).state = true;
+      ref.read(cvCheckProvider.notifier).state = true;
     } else {
-      ref.read(cvCheckProvider.state).state = false;
+      ref.read(cvCheckProvider.notifier).state = false;
     }
   }
 
