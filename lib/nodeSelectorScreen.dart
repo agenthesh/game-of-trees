@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
 import 'package:game_of_trees/mainGameScreen.dart';
 import 'package:rect_getter/rect_getter.dart';
@@ -15,6 +17,27 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
   final GlobalKey<RectGetterState> rectGetterKey =
       RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
+  late PageController _pageController;
+  late final levelDataNotifier;
+  late int _nodeIndex = 0;
+
+  @override
+  void initState() {
+    _pageController = PageController(viewportFraction: 0.6);
+    levelDataNotifier = ref.read(levelDataProvider);
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,19 +50,18 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    height: 300,
-                    child: ListView.separated(
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  SizedBox(
+                    height: 200,
+                    child: PageView.builder(
+                        onPageChanged: (int page) => setState(() {
+                              _nodeIndex = page;
+                            }),
+                        controller: _pageController,
                         scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) =>
-                            nodeCard(numberOfNodes: index + 5),
-                        separatorBuilder: (context, index) => Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 15.0,
-                              ),
-                            ),
-                        itemCount: 6),
+                        itemBuilder: (context, index) => nodeCard(
+                            numberOfNodes: levelDataNotifier
+                                .levelData[index].numberOfNodes),
+                        itemCount: levelDataNotifier.levelData.length),
                   ),
                   SizedBox(
                     height: 40,
@@ -53,7 +75,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                     ),
                   ),
                   SizedBox(
-                    height: 40,
+                    height: 10,
                   ),
                   RectGetter(
                     key: rectGetterKey,
@@ -61,35 +83,18 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                       child: GridView.count(
                         primary: false,
                         padding: const EdgeInsets.all(20),
-                        crossAxisSpacing: 0,
-                        mainAxisSpacing: 20,
-                        crossAxisCount: 1,
-                        children: [
-                          levelCard(characteristicVector: {
-                            "L0": 5,
-                            "L1": 4,
-                            "L2": 3,
-                            "L3": 2,
-                            "L4": 1,
-                            "L5": 0
-                          }),
-                          levelCard(characteristicVector: {
-                            "L0": 5,
-                            "L1": 4,
-                            "L2": 4,
-                            "L3": 2,
-                            "L4": 0,
-                            "L5": 0
-                          }),
-                          levelCard(characteristicVector: {
-                            "L0": 5,
-                            "L1": 4,
-                            "L2": 6,
-                            "L3": 0,
-                            "L4": 0,
-                            "L5": 0
-                          })
-                        ],
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.8,
+                        children: List.generate(
+                          levelDataNotifier
+                              .levelData[_nodeIndex].listOfVectors.length,
+                          (index) => levelCard(
+                              characteristicVector: levelDataNotifier
+                                  .levelData[_nodeIndex].listOfVectors[index],
+                              index: index),
+                        ),
                       ),
                     ),
                   ),
@@ -108,16 +113,14 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
       elevation: 25.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: Colors.pink,
-      child: Container(
-        width: 250,
-        padding: EdgeInsets.all(15),
+      child: SizedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               numberOfNodes.toString(),
               style: TextStyle(
-                fontSize: 140,
+                fontSize: 90,
                 color: Colors.white,
                 fontWeight: FontWeight.w900,
               ),
@@ -125,7 +128,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
             Text(
               "Nodes",
               style: TextStyle(
-                fontSize: 40,
+                fontSize: 30,
                 color: Colors.white,
                 fontWeight: FontWeight.w300,
               ),
@@ -136,21 +139,53 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
     );
   }
 
-  Widget levelCard({required Map<String, int> characteristicVector}) {
+  Widget levelCard(
+      {required Map<String, int> characteristicVector, required int index}) {
     return GestureDetector(
       onTap: () => _onLevelTap(characteristicVector: characteristicVector),
       child: Card(
-        elevation: 25.0,
+        elevation: 10.0,
+        shadowColor: Colors.pink,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Colors.pink,
-        child: Container(
-          padding: EdgeInsets.all(5),
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: characteristicVector.entries
-                  .map((e) => levelInfo(e.key, e.value))
-                  .toList()),
-        ),
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  "Level ${index.toString()}",
+                  style: TextStyle(
+                    fontSize: 25,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  characteristicVector
+                      .toString()
+                      .replaceAll("{", "")
+                      .replaceAll("}", ""),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey[300],
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                )
+              ],
+            )
+            // child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: characteristicVector.entries
+            //         .map((e) => levelInfo(e.key, e.value))
+            //         .toList()),
+            ),
       ),
     );
   }
@@ -162,7 +197,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
         Text(
           numberOfPaths.toString(),
           style: TextStyle(
-            fontSize: 40,
+            fontSize: 25,
             color: Colors.white,
             fontWeight: FontWeight.w900,
           ),
@@ -171,7 +206,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
           width: 15,
         ),
         Text(
-          "x " + formattedLength(length),
+          "- " + length.toString(),
           style: TextStyle(
             fontSize: 20,
             color: Colors.white,
@@ -225,11 +260,19 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
   }
 
   void _goToNextPage({required Map<String, int> characteristicVector}) {
+    ref.read(remainingNodeProvider.notifier).state = characteristicVector
+            .length -
+        1; //this is added here because you cannot change the state of an object during the lifecycle methods of the widget.
     Navigator.of(context)
-        .push(FadeRouteBuilder(
+        .push(
+          FadeRouteBuilder(
             page: MainGameScreen(
-          characteristicVector: characteristicVector,
-        )))
-        .then((_) => setState(() => rect = null));
+              characteristicVector: characteristicVector,
+            ),
+          ),
+        )
+        .then(
+          (_) => setState(() => rect = null),
+        );
   }
 }
