@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
-import 'package:game_of_trees/mainGameScreen.dart';
 import 'package:game_of_trees/nodeSelectorScreen.dart';
 import 'package:rect_getter/rect_getter.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<RectGetterState> rectGetterKey =
       RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
+
+  @override
+  void initState() {
+    ref.read(levelDataProvider).readJson();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
