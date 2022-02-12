@@ -2,7 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/nodeGame.dart';
-import 'package:game_of_trees/userControls.dart';
+import 'package:game_of_trees/nodeGameUI.dart';
 
 class MainGameScreen extends ConsumerStatefulWidget {
   final Map<String, int> characteristicVector;
@@ -20,6 +20,7 @@ class _MainGameScreenState extends ConsumerState<MainGameScreen> {
   @override
   void initState() {
     nodeGame = ExampleGame(
+      numberOfNodes: widget.characteristicVector.length - 1,
       appBarHeight: 0,
       context: context,
       ref: ref,
