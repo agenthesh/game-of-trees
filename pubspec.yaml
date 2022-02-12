@@ -31,7 +31,12 @@ flutter:
   assets:
     - assets/
     - assets/fonts/
+    - assets/gameData/
+    - assets/images/
   fonts:
+    - family:  NodeIcons
+      fonts:
+        - asset: assets/fonts/NodeIcons.ttf
     - family: Caveat
       fonts:
         - asset: assets/fonts/Caveat-Regular.ttf
