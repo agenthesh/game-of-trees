@@ -3,7 +3,7 @@ description: Node Based Connection Game
 
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 0.0.1+1
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
