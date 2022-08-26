@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
@@ -285,8 +286,42 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
       eventList.add(finalLineComponent);
 
       addNewEdgeBetween();
+      checkGraphIsCyclic();
       tempPath = null;
     }
+  }
+
+  void checkGraphIsCyclic() {
+    if (unDirectedGraph.isAcyclic) return;
+    Flushbar(
+      duration: Duration(seconds: 10),
+      boxShadows: [
+        BoxShadow(
+          offset: Offset(0.5, 0.5),
+          blurRadius: 5,
+        ),
+      ],
+      messageText: Text(
+        "Cycles are not allowed",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: Colors.grey.shade900,
+      borderColor: Colors.yellow,
+      margin: EdgeInsets.only(
+        top: 25,
+        right: 25,
+        left: 25,
+        bottom: 25,
+      ),
+      borderRadius: BorderRadius.all(
+        Radius.circular(8.0),
+      ),
+    )..show(context);
   }
 
   void addNewEdgeBetween() {
@@ -365,6 +400,7 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
 
   void checkCharVector() {
     _checkCount++;
+    ref.read(isAcyclicProvider.notifier).state = unDirectedGraph.isAcyclic;
     if (cvAnswer.characteristicVector.toString() == calculateCharacteristicVector().toString()) {
       ref.read(cvCheckProvider.notifier).state = true;
       //ref.read(levelDataProvider).levelData[numberOfNodes-4]. =

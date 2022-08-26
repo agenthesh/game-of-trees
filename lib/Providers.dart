@@ -13,4 +13,8 @@ final cvCheckProvider = StateProvider<bool>((ref) {
   return false;
 });
 
+final isAcyclicProvider = StateProvider<bool>(((ref) {
+  return true;
+}));
+
 final levelDataProvider = ChangeNotifierProvider((ref) => LevelData());

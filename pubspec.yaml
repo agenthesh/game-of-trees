@@ -29,6 +29,7 @@ dependencies:
   smooth_page_indicator: ^1.0.0+2
   video_player: ^2.4.5
   flutter_native_splash: ^2.2.3+1
+  another_flushbar: ^1.10.29
 
 dev_dependencies:
   flutter_test:

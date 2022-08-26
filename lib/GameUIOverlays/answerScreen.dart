@@ -26,6 +26,7 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
   Widget build(BuildContext context) {
     final Map<String, int> actualCV = ref.watch(cvProvider);
     final bool isCVCorrect = ref.watch(cvCheckProvider);
+    final bool isAcyclic = ref.watch(isAcyclicProvider);
     return Positioned.fill(
       child: Align(
         alignment: Alignment.topCenter,
@@ -42,7 +43,11 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
                 child: Column(
                   children: [
                     Text(
-                      isCVCorrect ? "Solved!" : "Try Again!",
+                      !isAcyclic
+                          ? "Cycles are not allowed!"
+                          : isCVCorrect
+                              ? "Solved!"
+                              : "Try Again!",
                       style: TextStyle(
                         color: Colors.grey[900],
                         fontSize: 25,
