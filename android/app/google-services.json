@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "474044368123",
+    "firebase_url": "https://game-of-trees-df000-default-rtdb.firebaseio.com",
+    "project_id": "game-of-trees-df000",
+    "storage_bucket": "game-of-trees-df000.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:474044368123:android:e871be63ce9f6168bc9c5e",
+        "android_client_info": {
+          "package_name": "com.pdlotko.gameoftrees"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "474044368123-6j6bg9cjocqqgvo7vu35pmui3tnkk4cc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-oWfrRmRrjAI_DHhdtdq3GjB7LYi_lgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "474044368123-6j6bg9cjocqqgvo7vu35pmui3tnkk4cc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "474044368123-o4oed37692jksk7194cpb8aldpmg4gkk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pdlotko.gameoftrees"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

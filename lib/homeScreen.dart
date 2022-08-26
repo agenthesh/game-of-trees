@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/AgeDialog.dart';
 import 'package:game_of_trees/Providers.dart';
+import 'package:game_of_trees/TutorialDialog.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
 import 'package:game_of_trees/nodeSelectorScreen.dart';
 import 'package:rect_getter/rect_getter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,13 +16,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final GlobalKey<RectGetterState> rectGetterKey =
-      RectGetter.createGlobalKey(); //<--Create a key
+  final GlobalKey<RectGetterState> rectGetterKey = RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
 
   @override
   void initState() {
-    ref.read(levelDataProvider).readJson();
+    ref.read(levelDataProvider).readFromAppDirectory();
     super.initState();
   }
 
@@ -30,15 +32,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          stops: [0, 0.1, 0.3, 0.5, 0.7, 0.9, 1],
           colors: [
-            Colors.pink[300]!,
-            Colors.pink[400]!,
-            Colors.pink[500]!,
-            Colors.pink[700]!,
-            Colors.pink[500]!,
-            Colors.pink[400]!,
-            Colors.pink[300]!,
+            Colors.yellow[300]!,
+            Colors.yellow[400]!,
+            Colors.yellow[500]!,
+            Colors.yellow[600]!,
+            Colors.yellow[500]!,
+            Colors.yellow[400]!,
+            Colors.yellow[300]!,
           ],
         ),
       ),
@@ -48,82 +49,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             backgroundColor: Colors.transparent,
             body: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.only(top: 150),
-                    child: Transform.rotate(
-                      angle: 25.0,
-                      child: Text(
-                        'Game Of Trees',
-                        style: TextStyle(
-                          fontSize: 70,
-                          fontFamily: "Caveat",
-                          fontWeight: FontWeight.w900,
-                          color: Colors.grey[300],
-                          letterSpacing: 1.5,
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.1,
+                      right: 20,
+                      left: 20,
+                    ),
+                    child: Image.asset(
+                      "assets/images/game-of-trees-logo.png",
+                      width: MediaQuery.of(context).size.width * 0.5,
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.1,
+                  ),
+                  Expanded(
+                    child: RectGetter(
+                      key: rectGetterKey,
+                      child: ElevatedButton(
+                        onPressed: _onTap,
+                        child: Center(
+                          child: Icon(
+                            Icons.play_arrow,
+                            size: 125,
+                            color: Colors.yellow,
+                          ),
+                        ),
+                        style: ButtonStyle(
+                          maximumSize: MaterialStateProperty.all(Size(
+                            MediaQuery.of(context).size.width * 0.5,
+                            MediaQuery.of(context).size.height * 0.2,
+                          )),
+                          elevation: MaterialStateProperty.all(40.0),
+                          shape: MaterialStateProperty.all(CircleBorder()),
+                          backgroundColor: MaterialStateProperty.all(Colors.grey[900]), // <-- Button color
+                          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                            (states) {
+                              if (states.contains(MaterialState.pressed)) return Colors.grey[900]; // <-- Splash color
+                            },
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 150,
-                  ),
-                  RectGetter(
-                    key: rectGetterKey,
-                    child: ElevatedButton(
-                      onPressed: _onTap,
-                      child: Icon(
-                        Icons.play_arrow,
-                        size: 125,
-                        color: Colors.grey[900],
-                      ),
-                      style: ButtonStyle(
-                        elevation: MaterialStateProperty.all(40.0),
-                        shape: MaterialStateProperty.all(CircleBorder()),
-                        padding: MaterialStateProperty.all(EdgeInsets.all(40)),
-                        backgroundColor: MaterialStateProperty.all(
-                            Colors.white), // <-- Button color
-                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (states) {
-                            if (states.contains(MaterialState.pressed))
-                              return Colors.grey[900]; // <-- Splash color
-                          },
-                        ),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.05),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            iconSize: 50,
+                            onPressed: () => Navigator.pushNamed(context, "/help"),
+                            icon: Icon(
+                              Icons.help,
+                              color: Colors.grey[900],
+                            ),
+                          ),
+                          // IconButton(
+                          //   iconSize: 50,
+                          //   onPressed: () {},
+                          //   icon: Icon(
+                          //     Icons.settings,
+                          //     color: Colors.grey[900],
+                          //   ),
+                          // ),
+                          // IconButton(
+                          //   iconSize: 50,
+                          //   onPressed: () {},
+                          //   icon: Icon(
+                          //     Icons.copyright,
+                          //     color: Colors.grey[900],
+                          //   ),
+                          // ),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 150,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        iconSize: 50,
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.help,
-                          color: Colors.white,
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 50,
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.settings,
-                          color: Colors.white,
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 50,
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.copyright,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
                   )
                 ],
               ),
@@ -156,20 +159,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onTap() async {
-    setState(() => rect = RectGetter.getRectFromKey(
-        rectGetterKey)); //<-- set rect to be size of fab
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      //<-- on the next frame...
-      setState(() => rect = rect!.inflate(1.3 *
-          MediaQuery.of(context).size.longestSide)); //<-- set rect to be big
-      Future.delayed(Duration(seconds: 1, milliseconds: 300),
-          _goToNextPage); //<-- after delay, go to next page
-    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey("userID")) {
+      showDialog(context: context, builder: (context) => AgeDialog());
+    } else {
+      setState(() => rect = RectGetter.getRectFromKey(rectGetterKey)); //<-- set rect to be size of fab
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          //<-- on the next frame...
+          setState(() => rect = rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide)); //<-- set rect to be big
+          Future.delayed(Duration(seconds: 1, milliseconds: 300), _goToNextPage); //<-- after delay, go to next page
+        },
+      );
+    }
   }
 
   void _goToNextPage() {
-    Navigator.of(context)
-        .push(FadeRouteBuilder(page: NodeSelectorScreen()))
-        .then((_) => setState(() => rect = null));
+    Navigator.of(context).push(FadeRouteBuilder(page: NodeSelectorScreen())).then((_) => setState(() => rect = null));
   }
 }

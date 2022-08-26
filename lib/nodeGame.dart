@@ -1,24 +1,32 @@
+import 'dart:math';
+
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flame/components.dart';
-import 'package:flame/gestures.dart';
+import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:directed_graph/directed_graph.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Model/CVAnswer.dart';
 import 'package:game_of_trees/Model/Node.dart';
+import 'package:game_of_trees/Model/linePath.dart';
 import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/Model/colorPoint.dart';
+import 'package:game_of_trees/services.dart';
+import 'package:game_of_trees/util.dart';
 
 import 'gameState.dart';
 import 'gridLayer.dart';
 import 'Model/unitSystem.dart';
 
-class ExampleGame extends BaseGame
-    with HasDraggableComponents, HasTappableComponents {
+class NodeGame extends FlameGame with HasDraggables, HasTappables {
   ///Considers app bar height into the calculation when calculation the corrected position of the nodes on the grid
   final double appBarHeight;
   final BuildContext context;
   final WidgetRef ref;
-  final Map<String, int> characteristicVectorAnswer;
+  final CVAnswer cvAnswer;
+  int _resetCounter = 0;
+  int _checkCount = 0;
 
   late GameState state;
   Rect? bgRect;
@@ -26,11 +34,12 @@ class ExampleGame extends BaseGame
   //Number of nodes this game has
   int numberOfNodes;
 
+  List<Component> listOfComponents = [];
+
   ///Actual object that draws the GridLayer on the Screen
   GridLayer? gridLayer;
 
   ///Contains all the paths (Edges or Lines)
-  List<Path> listOfPaths = [];
 
   ///Temporary variable used to calculate the path before it is final
   Path? tempPath;
@@ -51,10 +60,6 @@ class ExampleGame extends BaseGame
   ///Last Known Drag Start Position
   Vector2? lastDragStart;
 
-  ///Variable that contains the data to create the Graph Object
-  Map<Node, Set<Node>> directedGraphTree = {};
-  Map<Node, Set<Node>> unDirectedGraphTree = {};
-
   ///List of Labels for the node
   List<String> nodeLabels = [
     'A',
@@ -65,40 +70,35 @@ class ExampleGame extends BaseGame
     'F',
     'G',
     'H',
-    'I',
-    'J',
-    'K',
-    'L',
-    'M',
-    'N',
-    'O',
   ];
 
   //Graph Objects
-  /// Graph Object that stores the directed graph drawn on the screen
+  /// Graph Object that stores the directed graph (edge between start and end, end and start) drawn on the screen
   DirectedGraph<Node> directedGraph = DirectedGraph({});
 
   /// Graph Object that stores the undirected graph drawn on the screen
   DirectedGraph<Node> unDirectedGraph = DirectedGraph({});
 
+  List<dynamic> eventList = [];
+
   ///Painter used for painting the lines
   Paint linesPainter = Paint()
-    ..color = Colors.pink
+    ..color = Colors.white
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
+    ..strokeWidth = 5;
 
-  ExampleGame({
+  NodeGame({
     required this.numberOfNodes,
     required this.appBarHeight,
     required this.context,
     required this.ref,
-    required this.characteristicVectorAnswer,
+    required this.cvAnswer,
   });
 
   @override
-  void onResize(Vector2 canvasSize) {
+  void onGameResize(Vector2 canvasSize) {
     bgRect = Rect.fromLTWH(0.0, 0.0, canvasSize.x, canvasSize.y);
-    super.onResize(canvasSize);
+    super.onGameResize(canvasSize);
     state = GameState(
         unitSystem: UnitSystem(
       screenHeightInPixels: canvasSize.y,
@@ -123,80 +123,111 @@ class ExampleGame extends BaseGame
     tempPath = null;
     lastDragPosition = null;
     lastDragStart = null;
+    _resetCounter++;
   }
-
-  void addPointOnGrid(Vector2 point) => add(ColorPoint(point, state));
 
   bool insideGrid(Vector2 point) {
     return (point.x >= 0 &&
         point.y >= 0 &&
-        point.x <= GRID_WIDTH &&
-        point.y <= GRID_HEIGHT);
+        point.x <= state.unitSystem.gridWidth &&
+        point.y <= state.unitSystem.gridHeight);
   }
 
   bool isAtNode(Vector2 point) {
     return listOfNodes.any((element) => element.positionOnGrid == point);
   }
 
+  void undoEvent() {
+    if (eventList.isEmpty) return;
+    if (eventList.last is ColorPoint) {
+      ColorPoint tempNode = eventList.last as ColorPoint;
+
+      listOfNodes.removeWhere((element) => element.label == tempNode.label);
+
+      ref.read(remainingNodeProvider.notifier).state = ((numberOfNodes) - listOfNodes.length);
+      listOfComponents.removeWhere((element) => element is ColorPoint && element == tempNode);
+      remove(eventList.last);
+      firebaseService.removeNodeEvent(nodeLabel: tempNode.label, gridPosition: tempNode.gridPosition.toString());
+    }
+    if (eventList.last is LinePath) {
+      LinePath tempLinePath = eventList.last as LinePath;
+
+      Node startNode = listOfNodes.where((element) => element.positionOnGrid == tempLinePath.startPositionGrid).first;
+      Node endNode = listOfNodes.where((element) => element.positionOnGrid == tempLinePath.endPositionGrid).first;
+      removeEdgeBetween(startNode.label, endNode.label);
+      listOfComponents.removeWhere((element) => element is LinePath && element == tempLinePath);
+      remove(eventList.last);
+    }
+
+    eventList.removeLast();
+  }
+
   void resetBoard() {
-    listOfPaths.clear();
     listOfNodes.clear();
-    components.clear();
-    unDirectedGraph.clear();
+    removeAll(listOfComponents);
+    listOfComponents.clear();
+    this.unDirectedGraph.clear();
     directedGraph.clear();
     ref.read(remainingNodeProvider.notifier).state = numberOfNodes;
     ref.read(cvCheckProvider.notifier).state = false;
     tempPath = null;
+    FirebaseAnalytics.instance.logEvent(name: "reset_level", parameters: {
+      "level": cvAnswer.characteristicVector,
+      "resetCount": _resetCounter,
+    });
+
+    firebaseService.resetLevelEvent(resetCount: _resetCounter);
   }
 
-  void removeNodeConnections(Vector2 position) {
-    // get the node
+  void removeEdgeBetween(String startNodeLabel, String endNodeLabel) {
+    Node startNode = listOfNodes.where((element) => element.label == startNodeLabel).first;
+    Node endNode = listOfNodes.where((element) => element.label == endNodeLabel).first;
 
-    Node nodeToBeReset = listOfNodes
-        .where((element) => element.positionOnGrid == position)
-        .first; // Getting the node
+    unDirectedGraph.removeEdges(startNode, {endNode});
+    directedGraph.removeEdges(startNode, {endNode});
+    unDirectedGraph.removeEdges(endNode, {startNode});
 
-    //need to remove from undirected graph tree as well
+    listOfComponents.removeWhere((element) =>
+        element is LinePath &&
+        element.startPositionGrid == startNode.positionOnGrid &&
+        element.endPositionGrid == endNode.positionOnGrid);
 
-    unDirectedGraph.removeEdges(
-        nodeToBeReset, unDirectedGraph.edges(nodeToBeReset).toSet());
-
-    //updateGraphStructures();
-
-    //remove the path where all the paths beginning is this node
-
-    // //update graph structures
-    // print("hello");
-    // print(unDirectedGraph.edges());
+    firebaseService.removeEdgeBetweenEvent(startNodeLabel: startNodeLabel, endNodeLabel: endNodeLabel);
   }
 
   @override
   void onTapUp(int pointerId, TapUpInfo info) {
     final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
-
-    // isAtNode(position)
-    //     ? removeNodeConnections(position)
-    //     : print("idk why this not work");
-
     if (listOfNodes.length < numberOfNodes) {
       if (!insideGrid(position)) return;
-      ref.read(remainingNodeProvider.notifier).state =
-          ((numberOfNodes - 1) - listOfNodes.length);
+      if (isAtNode(position)) return;
+      ref.read(remainingNodeProvider.notifier).state = ((numberOfNodes - 1) - listOfNodes.length);
 
-      add(
-        ColorPoint(position, state),
-      ); //Adding to the Game Component List
+      final ColorPoint pointComponent =
+          ColorPoint(gridPosition: position, state: state, label: nodeLabels[listOfNodes.length]);
 
-      listOfNodes.add(
-        Node(
-          label: nodeLabels[listOfNodes.length],
-          positionOnGrid: position,
-        ),
+      add(pointComponent);
+
+      this.children.changePriority(pointComponent, 10);
+
+      listOfComponents.add(pointComponent);
+
+      eventList.add(pointComponent);
+
+      Node nodeToBeAdded = Node(
+        label: nodeLabels[listOfNodes.length],
+        positionOnGrid: position,
       );
 
-      //Assign an Empty Set to the Node Key in the GraphTree object (Not Linked to anything since it was just created)
-      directedGraphTree[listOfNodes[listOfNodes.length - 1]] = {};
-      unDirectedGraphTree[listOfNodes[listOfNodes.length - 1]] = {};
+      listOfNodes.add(nodeToBeAdded);
+
+      FirebaseAnalytics.instance.logEvent(name: "added_node", parameters: {
+        "level": cvAnswer.characteristicVector,
+        "position_of_node": position.toString(),
+      });
+
+      firebaseService.addNodeEvent(nodeLabel: nodeToBeAdded.label, gridPosition: position.toString());
+
       super.onTapUp(pointerId, info);
     }
   }
@@ -224,57 +255,49 @@ class ExampleGame extends BaseGame
   void onDragEnd(int pointerId, DragEndInfo event) {
     super.onDragEnd(pointerId, event);
 
-    if (lastDragPosition != null && lastDragStart != null) {
-      if (!insideGrid(lastDragPosition!)) return;
-      if (!isAtNode(lastDragPosition!)) resetElements();
+    if (!insideGrid(lastDragPosition!)) return;
+    if (!isAtNode(lastDragPosition!)) {
+      resetElements();
+      return;
+    }
 
-      var finalPath = getLineBetween(lastDragStart!, lastDragPosition!);
-      listOfPaths.add(finalPath);
-      updateGraphStructures();
+    if (lastDragPosition != null && lastDragStart != null) {
+      Rect originalRect = Rect.fromPoints(
+          state.unitSystem.vectorToOffset(lastDragStart!), state.unitSystem.vectorToOffset(lastDragPosition!));
+
+      Offset startPosition = state.unitSystem.vectorToOffset(lastDragStart!);
+      Offset endPosition = state.unitSystem.vectorToOffset(lastDragPosition!);
+
+      LinePath finalLineComponent = LinePath(
+        startPosition: startPosition,
+        endPosition: endPosition,
+        finalRect: getFinalRect(originalRect),
+        angle: atan2(
+          endPosition.dy - startPosition.dy,
+          endPosition.dx - startPosition.dx,
+        ),
+        state: state,
+      );
+      add(finalLineComponent);
+
+      listOfComponents.add(finalLineComponent);
+
+      eventList.add(finalLineComponent);
+
+      addNewEdgeBetween();
+      tempPath = null;
     }
   }
 
-  void updateGraphStructures() {
-    //Get the index of the node where the starting position and the ending position is that node.
-    int indexOfStartingNode = listOfNodes
-        .indexWhere((element) => element.positionOnGrid == lastDragStart!);
-    int indexOfEndingNode = listOfNodes
-        .indexWhere((element) => element.positionOnGrid == lastDragPosition!);
+  void addNewEdgeBetween() {
+    Node startNode = listOfNodes.where((element) => element.positionOnGrid == lastDragStart!).first;
+    Node endNode = listOfNodes.where((element) => element.positionOnGrid == lastDragPosition!).first;
 
-    //Get the set of nodes for the starting node
-    Set<Node> currentSetOfNodesDirected =
-        directedGraphTree[listOfNodes[indexOfStartingNode]]!;
+    directedGraph.addEdges(startNode, {endNode});
+    directedGraph.addEdges(endNode, {startNode});
+    unDirectedGraph.addEdges(startNode, {endNode});
 
-    Set<Node> currentSetOfNodesUnDirected =
-        unDirectedGraphTree[listOfNodes[indexOfStartingNode]]!;
-
-    //Add the Ending node to the current set
-    currentSetOfNodesDirected.add(listOfNodes[indexOfEndingNode]);
-    currentSetOfNodesUnDirected.add(listOfNodes[indexOfEndingNode]);
-
-    directedGraphTree.update(
-      listOfNodes[indexOfStartingNode],
-      (value) => currentSetOfNodesDirected,
-    ); //Add to the correct
-
-    unDirectedGraphTree.update(
-      listOfNodes[indexOfStartingNode],
-      (value) => currentSetOfNodesUnDirected,
-    ); //Add correct to the undirected tree to check for cycles
-
-    //Get the set of nodes for the ending node
-    currentSetOfNodesDirected =
-        directedGraphTree[listOfNodes[indexOfEndingNode]]!;
-
-    //Add the Starting node to the current set
-    currentSetOfNodesDirected.add(listOfNodes[indexOfStartingNode]);
-
-    //Add reverse direction to make it into a directed Graph
-    directedGraphTree.update(
-        listOfNodes[indexOfEndingNode], (value) => currentSetOfNodesDirected);
-
-    directedGraph = new DirectedGraph(directedGraphTree);
-    unDirectedGraph = new DirectedGraph(unDirectedGraphTree);
+    firebaseService.addEdgeEvent(startNodeLabel: startNode.label, endNodeLabel: endNode.label);
   }
 
   @override
@@ -284,28 +307,19 @@ class ExampleGame extends BaseGame
     canvas.drawRect(bgRect!, paint);
 
     gridLayer?.render(canvas);
+
+    if (tempPath != null) {
+      canvas.drawPath(tempPath!, linesPainter);
+    }
+
     super.render(canvas);
-
-    listOfPaths.forEach((element) {
-      canvas.drawPath(element, linesPainter);
-    });
-
-    //   listOfNodes.forEach(
-    //     (startNode) {
-    //       unDirectedGraph.edges(startNode).forEach(
-    //         (endNode) {
-    //           canvas.drawPath(
-    //               getLineBetween(
-    //                   startNode.positionOnGrid, endNode.positionOnGrid),
-    //               linesPainter);
-    //         },
-    //       );
-    //     },
-    //   );
   }
 
   Map<String, int> calculateCharacteristicVector() {
     try {
+      print("UnDirectedGraph: $unDirectedGraph");
+      print("DirectedGraph: $directedGraph");
+
       List<Node> newList = [];
 
       newList.addAll(listOfNodes);
@@ -315,9 +329,7 @@ class ExampleGame extends BaseGame
       Map<String, int> templateCharVector = {};
 
       for (var i = 0; i <= numberOfNodes; i++) {
-        i == 0
-            ? templateCharVector["L${i.toString()}"] = numberOfNodes
-            : templateCharVector["L${i.toString()}"] = 0;
+        i == 0 ? templateCharVector["L${i.toString()}"] = numberOfNodes : templateCharVector["L${i.toString()}"] = 0;
       } //creates the template characteristic vector that is filled in with the below loop
 
       for (var i = 0; i < listOfNodes.length; i++) {
@@ -325,14 +337,10 @@ class ExampleGame extends BaseGame
         for (var j = 0; j < newList.length; j++) {
           if (listOfNodes[i] == newList[j]) {
             print(
-              "Path From Node " +
-                  listOfNodes[i].label +
-                  " To Node " +
-                  newList[j].label,
+              "Path From Node " + listOfNodes[i].label + " To Node " + newList[j].label,
             );
           } else {
-            shortestPath =
-                directedGraph.crawler.path(listOfNodes[i], newList[j]);
+            shortestPath = directedGraph.crawler.path(listOfNodes[i], newList[j]);
             print(
               "Path From Node " +
                   listOfNodes[i].label +
@@ -342,9 +350,7 @@ class ExampleGame extends BaseGame
                   shortestPath.toString(),
             );
             templateCharVector["L" + (shortestPath.length - 1).toString()] =
-                templateCharVector[
-                        "L" + (shortestPath.length - 1).toString()]! +
-                    1;
+                templateCharVector["L" + (shortestPath.length - 1).toString()]! + 1;
           }
         }
       }
@@ -358,17 +364,29 @@ class ExampleGame extends BaseGame
   }
 
   void checkCharVector() {
-    if (characteristicVectorAnswer.toString() ==
-        calculateCharacteristicVector().toString()) {
+    _checkCount++;
+    if (cvAnswer.characteristicVector.toString() == calculateCharacteristicVector().toString()) {
       ref.read(cvCheckProvider.notifier).state = true;
+      //ref.read(levelDataProvider).levelData[numberOfNodes-4]. =
+
+      FirebaseAnalytics.instance.logEvent(name: "checked_answer", parameters: {
+        "level": cvAnswer.characteristicVector,
+        "passedLevel": true,
+        "checkCount": _checkCount,
+      });
+      firebaseService.checkAnswerEvent(passLevel: true, checkCount: _checkCount);
+
+      ref.read(levelDataProvider).writeIsSolvedToJson(
+          numberOfNodes: numberOfNodes,
+          cvAnswer: CVAnswer(isSolved: true, characteristicVector: cvAnswer.characteristicVector));
     } else {
       ref.read(cvCheckProvider.notifier).state = false;
+      FirebaseAnalytics.instance.logEvent(name: "checked_answer", parameters: {
+        "level": cvAnswer.characteristicVector,
+        "passedLevel": false,
+        "checkCount": _checkCount,
+      });
+      firebaseService.checkAnswerEvent(passLevel: false, checkCount: _checkCount);
     }
   }
-
-  // void loadGameDataFromEnv() {
-  //   DEMO_CHAR_VECTORS['nodes'].forEach((element) {
-  //     CharacteristicVectorAnswers.fromJson(element);
-  //   });
-  // }
 }

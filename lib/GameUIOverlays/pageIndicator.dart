@@ -24,7 +24,7 @@ class _PageIndicatorState extends State<PageIndicator> {
           boxShadow: [
             widget.isActive
                 ? BoxShadow(
-                    color: Color(0XFFEC407A).withOpacity(0.72),
+                    color: Colors.yellow.withOpacity(0.72),
                     blurRadius: 4.0,
                     spreadRadius: 1.0,
                     offset: Offset(
@@ -37,7 +37,7 @@ class _PageIndicatorState extends State<PageIndicator> {
                   )
           ],
           shape: BoxShape.circle,
-          color: widget.isActive ? Colors.pink : Colors.grey[400],
+          color: widget.isActive ? Colors.yellow : Colors.grey[400],
         ),
       ),
     );

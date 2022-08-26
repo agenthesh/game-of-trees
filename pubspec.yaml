@@ -1,9 +1,9 @@
 name: game_of_trees
 description: Node Based Connection Game
 
-publish_to: 'none'
+publish_to: "none"
 
-version: 0.0.1+1
+version: 0.0.1+12
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -12,19 +12,27 @@ dependencies:
   flutter:
     sdk: flutter
   animations: ^2.0.2
+  auto_size_text: ^3.0.0
   directed_graph: ^0.3.6
-  flame: 1.0.0-releasecandidate.13
-  flame_forge2d: 0.8.0-releasecandidate.13
+  firebase_analytics: ^9.1.2
+  firebase_core: ^1.13.1
+  firebase_database: ^9.0.14
+  firebase_auth: ^3.3.20
+  flame: ^1.1.1
+  flex_color_scheme: ^5.0.1
   flutter_riverpod: ^1.0.3
+  get_it: ^7.2.0
   graphs: ^2.1.0
+  path_provider: ^2.0.9
   rect_getter: ^1.1.0
   shared_preferences: ^2.0.13
+  smooth_page_indicator: ^1.0.0+2
+  video_player: ^2.4.5
+  flutter_native_splash: ^2.2.3+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-   
 
 flutter:
   uses-material-design: true
@@ -33,8 +41,9 @@ flutter:
     - assets/fonts/
     - assets/gameData/
     - assets/images/
+    - assets/videos/
   fonts:
-    - family:  NodeIcons
+    - family: NodeIcons
       fonts:
         - asset: assets/fonts/NodeIcons.ttf
     - family: Caveat
@@ -46,4 +55,4 @@ flutter:
         - asset: assets/fonts/Caveat-SemiBold.ttf
           weight: 700
         - asset: assets/fonts/Caveat-Bold.ttf
-          weight: 900   
+          weight: 900

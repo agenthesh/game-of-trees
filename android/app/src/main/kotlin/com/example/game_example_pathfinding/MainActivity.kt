@@ -1,4 +1,4 @@
-package com.example.game_example_pathfinding
+package com.pdlotko.gameoftrees
 
 import io.flutter.embedding.android.FlutterActivity
 

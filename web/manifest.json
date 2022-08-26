@@ -1,6 +1,6 @@
 {
-    "name": "game_example_pathfinding",
-    "short_name": "game_example_pathfinding",
+    "name": "game_of_trees",
+    "short_name": "game_of_trees",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

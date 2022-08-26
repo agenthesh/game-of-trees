@@ -1,30 +1,30 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Model/CVAnswer.dart';
 import 'package:game_of_trees/nodeGame.dart';
 import 'package:game_of_trees/nodeGameUI.dart';
 
 class MainGameScreen extends ConsumerStatefulWidget {
-  final Map<String, int> characteristicVector;
-  MainGameScreen({Key? key, required this.characteristicVector})
-      : super(key: key);
+  final CVAnswer cvAnswer;
+  MainGameScreen({Key? key, required this.cvAnswer}) : super(key: key);
 
   @override
   _MainGameScreenState createState() => _MainGameScreenState();
 }
 
 class _MainGameScreenState extends ConsumerState<MainGameScreen> {
-  late ExampleGame nodeGame;
+  late NodeGame nodeGame;
   late NodeGameUI gameUI;
 
   @override
   void initState() {
-    nodeGame = ExampleGame(
-      numberOfNodes: widget.characteristicVector.length - 1,
+    nodeGame = NodeGame(
+      numberOfNodes: widget.cvAnswer.characteristicVector.length - 1,
       appBarHeight: 0,
       context: context,
       ref: ref,
-      characteristicVectorAnswer: widget.characteristicVector,
+      cvAnswer: widget.cvAnswer,
     );
     gameUI = NodeGameUI(nodeGame: nodeGame);
     super.initState();
@@ -49,21 +49,3 @@ class _MainGameScreenState extends ConsumerState<MainGameScreen> {
     );
   }
 }
-
-// PreferredSizeWidget myAppBar(BuildContext context) {
-//   return AppBar(
-//     backgroundColor: Colors.black,
-//     shape: RoundedRectangleBorder(
-//       borderRadius: BorderRadius.only(
-//         bottomLeft: Radius.circular(10),
-//         bottomRight: Radius.circular(10),
-//       ),
-//     ),
-//     actions: [
-//       IconButton(
-//         onPressed: () => {},
-//         icon: Icon(Icons.ac_unit_sharp),
-//       )
-//     ],
-//   );
-// }

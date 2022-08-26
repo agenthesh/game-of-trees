@@ -1,22 +1,20 @@
-import 'package:flame/game.dart';
 import 'package:flame/image_composition.dart';
 
 // Constants (size in m)
 // - Physics
-const double SCALE = 0.2;
-const double SCALE_WORLD_MULTIPLIER =
-    100 * SCALE; // meters to centimeters * scaler
+// const double SCALE = 0.2;
+// const double SCALE_WORLD_MULTIPLIER = 100 * SCALE; // meters to centimeters * scaler
 
 // - Size, close to the american pool table (224x112) which is 2:1, we need 16:9
-const double PLAYING_FIELD_HEIGHT = 2.00 * SCALE_WORLD_MULTIPLIER;
-const double PLAYING_FIELD_WIDTH = 1.10 * SCALE_WORLD_MULTIPLIER;
+// const double PLAYING_FIELD_HEIGHT = 2.00 * SCALE_WORLD_MULTIPLIER;
+// const double PLAYING_FIELD_WIDTH = 1.10 * SCALE_WORLD_MULTIPLIER;
 
 // - Grid size
-const int GRID_VERT_WIDTH = 6;
-const int GRID_VERT_HEIGHT = 11;
-const int GRID_WIDTH = GRID_VERT_WIDTH + 1;
-const int GRID_HEIGHT = GRID_VERT_HEIGHT + 1;
-const double GRID_CELL_GAP = PLAYING_FIELD_WIDTH / GRID_WIDTH;
+// const int GRID_VERT_WIDTH = 20;
+// const int GRID_VERT_HEIGHT = 11;
+// const int GRID_WIDTH = GRID_VERT_WIDTH + 1;
+// const int GRID_HEIGHT = GRID_VERT_HEIGHT + 1;
+// const double GRID_CELL_GAP = PLAYING_FIELD_WIDTH / GRID_WIDTH;
 
 class UnitSystem {
   final double screenHeightInPixels;
@@ -32,36 +30,33 @@ class UnitSystem {
   });
 
   // Getters
-  double get pixelsInMeter =>
-      screenHeightInPixels / PLAYING_FIELD_HEIGHT * playingFieldToScreenRatio;
-  double get playingFieldHeight => PLAYING_FIELD_HEIGHT * pixelsInMeter;
-  double get playingFieldWidth => PLAYING_FIELD_WIDTH * pixelsInMeter;
-  double get gridCellGap => GRID_CELL_GAP * pixelsInMeter;
-  Vector2 get playingFieldOffset => Vector2(
-      screenWidthInPixels / 2 - playingFieldWidth / 2,
-      screenHeightInPixels / 2 - playingFieldHeight / 2);
-  Vector2 get activeAreaOffset =>
-      playingFieldOffset + Vector2(gridCellGap, gridCellGap);
+
+  // change this for grid size/scale
+  double get gridWidth => screenWidthInPixels * 0.02;
+  double get gridHeight => screenHeightInPixels * 0.016;
+
+  double get pixelsInMeter => screenHeightInPixels / screenHeightInPixels * playingFieldToScreenRatio;
+  double get playingFieldHeight => screenHeightInPixels;
+  double get playingFieldWidth => screenWidthInPixels;
+  double get gridCellGap => ((screenWidthInPixels - (screenWidthInPixels * 0.08)) / gridWidth);
+  Vector2 get playingFieldOffset => Vector2(screenWidthInPixels * 0.03, screenHeightInPixels * 0.115);
+  Vector2 get activeAreaOffset => playingFieldOffset + Vector2(gridCellGap, gridCellGap);
 
   // Utility methods
-  Vector2 metersToPixels(Vector2 meters) =>
-      Vector2(meters.x, meters.y) * pixelsInMeter;
+  Vector2 metersToPixels(Vector2 meters) => Vector2(meters.x, meters.y) * pixelsInMeter;
 
   Vector2 pixelToGrid(Vector2 pixelCoordinates) {
     final dragPixelPosition = pixelCoordinates;
     // print("DRAG PIXEL POSITION: $dragPixelPosition");
     // print("activeAreaOffset: $activeAreaOffset");
-    final dragCorrectedPixelPosition = dragPixelPosition -
-        (activeAreaOffset +
-            Vector2(0, appBarHeight)); //need to take the app bar size here
+    final dragCorrectedPixelPosition =
+        dragPixelPosition - (activeAreaOffset + Vector2(0, appBarHeight)); //need to take the app bar size here
     // print("dragCorrectedPixelPosition: $dragCorrectedPixelPosition");
     final dragGridPosition = dragCorrectedPixelPosition / gridCellGap;
     // print("gridCellGap: $gridCellGap");
     // print("dragGridPosition: $dragGridPosition");
-    final dragGridPositionRounded = Vector2(
-            dragGridPosition.x.round().toDouble(),
-            dragGridPosition.y.round().toDouble()) +
-        Vector2.all(1);
+    final dragGridPositionRounded =
+        Vector2(dragGridPosition.x.round().toDouble(), dragGridPosition.y.round().toDouble()) + Vector2.all(1);
 
     // print("dragGridPositionRounded: $dragGridPositionRounded");
     // print("----------------------------------------------");
@@ -81,5 +76,9 @@ class UnitSystem {
     final result = Vector2.copy(playingFieldOffset);
     result.add(Vector2(x * gridCellGap, y * gridCellGap));
     return result;
+  }
+
+  Offset vectorToOffset(Vector2 point) {
+    return gridToPixelFrom(vector: point).toOffset();
   }
 }

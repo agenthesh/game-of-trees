@@ -1,43 +1,29 @@
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
-import '../gameState.dart';
+import 'package:game_of_trees/gameState.dart';
 
 class ColorPoint extends PositionComponent {
-  late final Vector2 gridPosition;
+  final Vector2 gridPosition;
+  late final Vector2 pixelPosition;
   late final Paint mainPaint;
+  final String label;
   final GameState state;
 
-  ColorPoint(Vector2 gridPosition, this.state)
-      : super(
-          position: state.unitSystem.gridToPixel(
-            gridPosition.x.toInt(),
-            gridPosition.y.toInt(),
-          ),
-        ) {
-    gridPosition = gridPosition;
-  }
+  ColorPoint({required this.gridPosition, required this.state, required this.label});
 
   @override
   Future<void>? onLoad() {
     mainPaint = Paint();
-    mainPaint.color = Colors.pink;
+    mainPaint.color = Colors.yellow;
+    pixelPosition = state.unitSystem.gridToPixelFrom(vector: gridPosition);
     return super.onLoad();
-  }
-
-  @override
-  void preRender(Canvas canvas) {
-    //Nope
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-
     canvas.drawCircle(
-      position.toOffset(),
+      pixelPosition.toOffset(),
       state.unitSystem.gridCellGap / 4,
       mainPaint,
     );

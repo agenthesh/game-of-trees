@@ -1,2 +1,3 @@
-# flutterGamePathfindingExample
-Example for simple pathfinding with Flutter and Flame for Medium
+# Game of Trees
+
+Need to add information here.

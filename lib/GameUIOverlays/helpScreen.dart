@@ -14,9 +14,9 @@ class _HelpScreenState extends State<HelpScreen> {
   int _currentIndex = 0;
 
   final List<String> _helpArray = [
-    "Tap the screen to add a node to the screen.",
-    "Connect the nodes to create a graph that satisfies the characteristic vector.",
-    "Click on Check Graph to check your answer"
+    "Tap anywhere on the screen to add a Node",
+    "Drag from a node to another node to create an Edge",
+    "Double tap on an Edge to remove it"
   ];
 
   @override
@@ -25,24 +25,21 @@ class _HelpScreenState extends State<HelpScreen> {
       child: Align(
         alignment: Alignment.topCenter,
         child: Padding(
-          padding:
-              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
+          padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
           child: Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25.0)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
             color: Colors.white,
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.5,
+              height: MediaQuery.of(context).size.height * 0.7,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 25.0, horizontal: 25.0),
+                padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 25.0),
                 child: Column(
                   children: [
                     Text(
-                      "NodeGame Basics",
+                      "Game of Trees Basics",
                       style: TextStyle(
-                        color: Colors.pink,
+                        color: Colors.grey[900],
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                       ),
@@ -51,16 +48,14 @@ class _HelpScreenState extends State<HelpScreen> {
                       height: 15,
                     ),
                     Expanded(
-                      child: SizedBox(
-                        child: PageView.builder(
-                          onPageChanged: (page) => setState(() {
-                            _currentIndex = page;
-                          }),
-                          itemCount: 2,
-                          itemBuilder: (context, index) => HelpIllustrationCard(
-                            text: _helpArray[index],
-                            index: index,
-                          ),
+                      child: PageView.builder(
+                        onPageChanged: (page) => setState(() {
+                          _currentIndex = page;
+                        }),
+                        itemCount: 3,
+                        itemBuilder: (context, index) => HelpIllustrationCard(
+                          text: _helpArray[index],
+                          index: index + 1,
                         ),
                       ),
                     ),
@@ -68,7 +63,7 @@ class _HelpScreenState extends State<HelpScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: _buildPageIndicator(2),
+                        children: _buildPageIndicator(3),
                       ),
                     ),
                     IconButton(
@@ -77,7 +72,7 @@ class _HelpScreenState extends State<HelpScreen> {
                       icon: Icon(
                         Icons.task_alt,
                         size: 40,
-                        color: Colors.pink,
+                        color: Colors.yellow,
                       ),
                     ),
                   ],
@@ -93,18 +88,14 @@ class _HelpScreenState extends State<HelpScreen> {
   List<Widget> _buildPageIndicator(int numberOfPages) {
     List<Widget> list = [];
     for (int i = 0; i < numberOfPages; i++) {
-      list.add(i == _currentIndex
-          ? PageIndicator(isActive: true)
-          : PageIndicator(isActive: false));
+      list.add(i == _currentIndex ? PageIndicator(isActive: true) : PageIndicator(isActive: false));
     }
     return list;
   }
 }
 
 class HelpIllustrationCard extends StatelessWidget {
-  const HelpIllustrationCard(
-      {Key? key, required this.text, required this.index})
-      : super(key: key);
+  const HelpIllustrationCard({Key? key, required this.text, required this.index}) : super(key: key);
 
   final int index;
   final String text;
@@ -114,29 +105,38 @@ class HelpIllustrationCard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 10),
           width: MediaQuery.of(context).size.width * 0.8,
-          height: MediaQuery.of(context).size.height * 0.18,
-          child: Image.asset(
-            "assets/images/Help$index.gif",
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => SizedBox.expand(
-              child: Center(
-                child: Text("Don't be lazy and make the images please!"),
+          height: MediaQuery.of(context).size.height * 0.25,
+          decoration: BoxDecoration(
+            color: Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              "assets/images/help-$index.gif",
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => SizedBox.expand(
+                child: Center(
+                  child: Text("Don't be lazy and make the images please!"),
+                ),
               ),
             ),
           ),
         ),
         SizedBox(
-          height: 15,
+          height: 25,
         ),
         Text(
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 18,
-              fontWeight: FontWeight.w300),
+            color: Colors.grey[900],
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

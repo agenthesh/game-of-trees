@@ -1,9 +1,12 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_of_trees/Model/CVAnswer.dart';
 import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
 import 'package:game_of_trees/mainGameScreen.dart';
+import 'package:game_of_trees/services.dart';
+import 'package:game_of_trees/util.dart';
 import 'package:rect_getter/rect_getter.dart';
 
 class NodeSelectorScreen extends ConsumerStatefulWidget {
@@ -14,8 +17,7 @@ class NodeSelectorScreen extends ConsumerStatefulWidget {
 }
 
 class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
-  final GlobalKey<RectGetterState> rectGetterKey =
-      RectGetter.createGlobalKey(); //<--Create a key
+  final GlobalKey<RectGetterState> rectGetterKey = RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
   late PageController _pageController;
   late final levelDataNotifier;
@@ -53,15 +55,15 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                   SizedBox(
                     height: 200,
                     child: PageView.builder(
-                        onPageChanged: (int page) => setState(() {
-                              _nodeIndex = page;
-                            }),
-                        controller: _pageController,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) => nodeCard(
-                            numberOfNodes: levelDataNotifier
-                                .levelData[index].numberOfNodes),
-                        itemCount: levelDataNotifier.levelData.length),
+                      onPageChanged: (int page) => setState(() {
+                        _nodeIndex = page;
+                      }),
+                      controller: _pageController,
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) =>
+                          nodeCard(numberOfNodes: levelDataNotifier.levelData[index].numberOfNodes),
+                      itemCount: levelDataNotifier.levelData.length,
+                    ),
                   ),
                   SizedBox(
                     height: 40,
@@ -85,15 +87,11 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                         padding: const EdgeInsets.all(20),
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.8,
+                        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
                         children: List.generate(
-                          levelDataNotifier
-                              .levelData[_nodeIndex].listOfVectors.length,
+                          levelDataNotifier.levelData[_nodeIndex].listOfVectors.length,
                           (index) => levelCard(
-                              characteristicVector: levelDataNotifier
-                                  .levelData[_nodeIndex].listOfVectors[index],
-                              index: index),
+                              cvAnswer: levelDataNotifier.levelData[_nodeIndex].listOfVectors[index], index: index),
                         ),
                       ),
                     ),
@@ -112,7 +110,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
     return Card(
       elevation: 25.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.pink,
+      color: Colors.yellow,
       child: SizedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -121,7 +119,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
               numberOfNodes.toString(),
               style: TextStyle(
                 fontSize: 90,
-                color: Colors.white,
+                color: Colors.grey[900],
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -129,8 +127,8 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
               "Nodes",
               style: TextStyle(
                 fontSize: 30,
-                color: Colors.white,
-                fontWeight: FontWeight.w300,
+                color: Colors.grey[900],
+                fontWeight: FontWeight.w700,
               ),
             )
           ],
@@ -139,81 +137,43 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
     );
   }
 
-  Widget levelCard(
-      {required Map<String, int> characteristicVector, required int index}) {
+  Widget levelCard({required CVAnswer cvAnswer, required int index}) {
     return GestureDetector(
-      onTap: () => _onLevelTap(characteristicVector: characteristicVector),
+      onTap: () => _onLevelTap(cvAnswer: cvAnswer),
       child: Card(
         elevation: 10.0,
-        shadowColor: Colors.pink,
+        shadowColor: cvAnswer.isSolved ? Colors.green[100] : Colors.yellow[100],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: Colors.pink,
+        color: cvAnswer.isSolved ? Colors.green : Colors.yellow,
         child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 20,
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Level ${(index + 1).toString()}",
+                style: TextStyle(
+                  fontSize: 25,
+                  color: Colors.grey[900],
+                  fontWeight: FontWeight.w900,
                 ),
-                Text(
-                  "Level ${index.toString()}",
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
+              ),
+              AutoSizeText(
+                formatCharacteristicVector(cvAnswer.characteristicVector),
+                textAlign: TextAlign.center,
+                maxLines: 4,
+                style: TextStyle(
+                  color: Colors.grey[900],
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
                 ),
-                const Spacer(),
-                Text(
-                  characteristicVector
-                      .toString()
-                      .replaceAll("{", "")
-                      .replaceAll("}", ""),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey[300],
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                )
-              ],
-            )
-            // child: Column(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: characteristicVector.entries
-            //         .map((e) => levelInfo(e.key, e.value))
-            //         .toList()),
-            ),
+              )
+            ],
+          ),
+        ),
       ),
-    );
-  }
-
-  Widget levelInfo(String length, int numberOfPaths) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          numberOfPaths.toString(),
-          style: TextStyle(
-            fontSize: 25,
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        SizedBox(
-          width: 15,
-        ),
-        Text(
-          "- " + length.toString(),
-          style: TextStyle(
-            fontSize: 20,
-            color: Colors.white,
-            fontWeight: FontWeight.w300,
-          ),
-        ),
-      ],
     );
   }
 
@@ -241,33 +201,34 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
     );
   }
 
-  void _onLevelTap({required Map<String, int> characteristicVector}) async {
-    setState(() => rect = RectGetter.getRectFromKey(
-        rectGetterKey)); //<-- set rect to be size of fab
-    WidgetsBinding.instance!.addPostFrameCallback(
+  void _onLevelTap({required CVAnswer cvAnswer}) async {
+    firebaseService.startNewLevelEvent(
+        numberOfNodes: levelDataNotifier.levelData[_pageController.page!.toInt()].numberOfNodes,
+        characteristicVector: cvAnswer.characteristicVector);
+
+    setState(() => rect = RectGetter.getRectFromKey(rectGetterKey)); //<-- set rect to be size of fab
+    WidgetsBinding.instance.addPostFrameCallback(
       (_) {
         //<-- on the next frame...
         setState(
-          () => rect =
-              rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide),
+          () => rect = rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide),
         ); //<-- set rect to be big
         Future.delayed(
           Duration(seconds: 1, milliseconds: 300),
-          () => _goToNextPage(characteristicVector: characteristicVector),
+          () => _goToNextPage(cvAnswer: cvAnswer),
         ); //<-- after delay, go to next page
       },
     );
   }
 
-  void _goToNextPage({required Map<String, int> characteristicVector}) {
-    ref.read(remainingNodeProvider.notifier).state = characteristicVector
-            .length -
+  void _goToNextPage({required CVAnswer cvAnswer}) {
+    ref.read(remainingNodeProvider.notifier).state = cvAnswer.characteristicVector.length -
         1; //this is added here because you cannot change the state of an object during the lifecycle methods of the widget.
     Navigator.of(context)
         .push(
           FadeRouteBuilder(
             page: MainGameScreen(
-              characteristicVector: characteristicVector,
+              cvAnswer: cvAnswer,
             ),
           ),
         )

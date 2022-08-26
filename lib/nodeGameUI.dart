@@ -6,9 +6,10 @@ import 'package:game_of_trees/GameUIOverlays/screenLevelInfo.dart';
 import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/nodeGame.dart';
 import 'package:game_of_trees/node_icons_icons.dart';
+import 'package:game_of_trees/services.dart';
 
 class NodeGameUI extends ConsumerStatefulWidget {
-  final ExampleGame nodeGame;
+  final NodeGame nodeGame;
 
   const NodeGameUI({Key? key, required this.nodeGame}) : super(key: key);
 
@@ -16,17 +17,16 @@ class NodeGameUI extends ConsumerStatefulWidget {
   _NodeGameUIState createState() => _NodeGameUIState();
 }
 
-class _NodeGameUIState extends ConsumerState<NodeGameUI>
-    with WidgetsBindingObserver {
+class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObserver {
   UIScreen currentScreen = UIScreen.gameUI;
 
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -50,8 +50,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
         color: Colors.white,
         icon: Icon(Icons.help_outline),
         onPressed: () {
-          currentScreen =
-              currentScreen == UIScreen.help ? UIScreen.gameUI : UIScreen.help;
+          currentScreen = currentScreen == UIScreen.help ? UIScreen.gameUI : UIScreen.help;
           update();
         },
       ),
@@ -68,6 +67,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
         icon: Icon(Icons.logout),
         onPressed: () {
           Navigator.pop(context);
+          firebaseService.closeGameEvent();
         },
       ),
     );
@@ -82,9 +82,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
         color: Colors.white,
         icon: Icon(NodeIcons.graph),
         onPressed: () {
-          currentScreen = currentScreen == UIScreen.levelInfo
-              ? UIScreen.gameUI
-              : UIScreen.levelInfo;
+          currentScreen = currentScreen == UIScreen.levelInfo ? UIScreen.gameUI : UIScreen.levelInfo;
           update();
         },
       ),
@@ -98,7 +96,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
           padding: EdgeInsets.only(right: 6, top: 2),
           child: Icon(
             Icons.circle,
-            color: Colors.pink,
+            color: Colors.yellow,
           ),
         ),
         Consumer(
@@ -139,58 +137,100 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
         children: <Widget>[
           spacer(),
           Padding(
-              padding: EdgeInsets.only(bottom: 40),
+              padding: EdgeInsets.only(bottom: 20, left: 10, right: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.pink,
-                      textStyle: TextStyle(
-                        fontSize: 18.0,
+                  Material(
+                    color: Colors.transparent,
+                    child: Ink(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Colors.yellow, Colors.yellow[700]!],
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      side: BorderSide(
-                        color: Colors.pink,
+                      child: InkWell(
+                        onTap: () => widget.nodeGame.undoEvent(),
+                        customBorder: CircleBorder(),
+                        child: Center(
+                          child: Icon(
+                            Icons.undo,
+                            size: 22,
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                        splashColor: Colors.yellow[300],
                       ),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                     ),
-                    child: Text(
-                      "Check Graph",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () {
-                      currentScreen = UIScreen.cvScreen;
-                      widget.nodeGame.checkCharVector();
-                      update();
-                    },
                   ),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      primary: Colors.pink,
-                      backgroundColor: Colors.white,
-                      textStyle: TextStyle(
-                        fontSize: 18.0,
+                  SizedBox(
+                    width: 15,
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: Ink(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Colors.yellow, Colors.yellow[700]!],
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      side: BorderSide(
-                        color: Colors.white,
+                      child: InkWell(
+                        onTap: () {
+                          currentScreen = UIScreen.cvScreen;
+                          widget.nodeGame.checkCharVector();
+                          update();
+                        },
+                        customBorder: CircleBorder(),
+                        child: Center(
+                          child: Icon(
+                            Icons.check,
+                            size: 50,
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                        splashColor: Colors.pink[300],
                       ),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                     ),
-                    child: Text(
-                      "Reset Board",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                  ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: Ink(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Colors.yellow, Colors.yellow[700]!],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: InkWell(
+                        onTap: () => widget.nodeGame.resetBoard(),
+                        customBorder: CircleBorder(),
+                        child: Center(
+                          child: Icon(
+                            Icons.refresh,
+                            size: 22,
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                        splashColor: Colors.pink[300],
                       ),
                     ),
-                    onPressed: () {
-                      currentScreen = UIScreen.gameUI;
-                      widget.nodeGame.resetBoard();
-                      update();
-                    },
                   ),
                 ],
               ))
@@ -212,15 +252,13 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
                 update();
               }),
               ScreenLevelInfo(
-                  characteristicVectorAnswer:
-                      widget.nodeGame.characteristicVectorAnswer,
+                  characteristicVectorAnswer: widget.nodeGame.cvAnswer.characteristicVector,
                   onDonePress: () {
                     currentScreen = UIScreen.gameUI;
                     update();
                   }),
               AnswerScreen(
-                characteristicVectorAnswer:
-                    widget.nodeGame.characteristicVectorAnswer,
+                characteristicVectorAnswer: widget.nodeGame.cvAnswer.characteristicVector,
                 onDonePress: () {
                   currentScreen = UIScreen.gameUI;
                   update();
@@ -232,10 +270,6 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
         ),
       ],
     );
-  }
-
-  void didChangeMetrics() {
-    //game.onResize(WidgetsBinding.instance!.window.physicalSize);
   }
 }
 
