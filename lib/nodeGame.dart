@@ -32,7 +32,7 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
   late GameState state;
   Rect? bgRect;
 
-  //Number of nodes this game has
+  ///Number of nodes this game has
   int numberOfNodes;
 
   List<Component> listOfComponents = [];
@@ -364,7 +364,8 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
       Map<String, int> templateCharVector = {};
 
       for (var i = 0; i <= numberOfNodes; i++) {
-        i == 0 ? templateCharVector["L${i.toString()}"] = numberOfNodes : templateCharVector["L${i.toString()}"] = 0;
+        templateCharVector["L${i.toString()}"] = 0;
+        //i == 0 ? templateCharVector["L${i.toString()}"] = numberOfNodes : templateCharVector["L${i.toString()}"] = 0;
       } //creates the template characteristic vector that is filled in with the below loop
 
       for (var i = 0; i < listOfNodes.length; i++) {
@@ -389,6 +390,9 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
           }
         }
       }
+
+      templateCharVector["L0"] = listOfNodes.length;
+
       ref.read(cvProvider.notifier).state = templateCharVector;
       print(templateCharVector);
       return templateCharVector;
