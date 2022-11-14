@@ -35,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _controller = VideoPlayerController.asset("assets/videos/$assetName.mp4")
       ..initialize().then((value) {
         setState(() {});
-        _controller.setPlaybackSpeed(2);
+        _controller.setPlaybackSpeed(1.25);
 
         _controller.play();
         setUpListener(_controller);
@@ -89,7 +89,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Center(
                 child: AnimatedCrossFade(
                   duration: Duration(seconds: 1),
-                  crossFadeState: _isFinishedPlaying ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                  crossFadeState: _isFinishedPlaying
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
                   firstChild: PrimaryButton(
                     onPressed: () => Navigator.pop(context),
                     label: "Let's start playing!",
