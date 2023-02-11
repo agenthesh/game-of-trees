@@ -7,6 +7,7 @@ import 'package:game_of_trees/FirebaseService.dart';
 import 'package:game_of_trees/Model/CVAnswer.dart';
 import 'package:game_of_trees/firebase_options.dart';
 import 'package:game_of_trees/homeScreen.dart';
+import 'package:game_of_trees/nodeSelectorScreen.dart';
 import 'package:game_of_trees/onboardingScreen.dart';
 import 'package:game_of_trees/theme.dart';
 import 'package:get_it/get_it.dart';
@@ -40,7 +41,8 @@ Future setupBase() async {
   //Init prefs
   prefs = await SharedPreferences.getInstance();
   if (prefs.containsKey("userID")) {
-    GetIt.instance.registerLazySingleton<FirebaseService>(() => FirebaseService(prefs));
+    GetIt.instance
+        .registerLazySingleton<FirebaseService>(() => FirebaseService(prefs));
   }
 }
 
@@ -61,6 +63,7 @@ class MyApp extends StatelessWidget {
         '/game': (context) => MainGameScreen(
               cvAnswer: CVAnswer(isSolved: false, characteristicVector: {}),
             ),
+        '/levelSelector': (context) => NodeSelectorScreen(),
       },
     );
   }
