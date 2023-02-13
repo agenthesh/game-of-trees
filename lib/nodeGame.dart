@@ -1,26 +1,27 @@
 import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
+import 'package:directed_graph/directed_graph.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flame/components.dart';
-import 'package:flame/input.dart';
-import 'package:flutter/material.dart';
+import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:directed_graph/directed_graph.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/Model/CVAnswer.dart';
 import 'package:game_of_trees/Model/Node.dart';
+import 'package:game_of_trees/Model/colorPoint.dart';
 import 'package:game_of_trees/Model/linePath.dart';
 import 'package:game_of_trees/Providers.dart';
-import 'package:game_of_trees/Model/colorPoint.dart';
 import 'package:game_of_trees/services.dart';
+import 'package:game_of_trees/temp2.dart';
 import 'package:game_of_trees/util.dart';
 
+import 'Model/unitSystem.dart';
 import 'gameState.dart';
 import 'gridLayer.dart';
-import 'Model/unitSystem.dart';
 
-class NodeGame extends FlameGame with HasDraggables, HasTappables {
+class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
   ///Considers app bar height into the calculation when calculation the corrected position of the nodes on the grid
   final double appBarHeight;
   final BuildContext context;
@@ -76,9 +77,6 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
   //Graph Objects
   /// Graph Object that stores the directed graph (edge between start and end, end and start) drawn on the screen
   DirectedGraph<Node> directedGraph = DirectedGraph({});
-
-  /// Graph Object that stores the undirected graph drawn on the screen
-  DirectedGraph<Node> unDirectedGraph = DirectedGraph({});
 
   List<dynamic> eventList = [];
 
@@ -144,19 +142,34 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
       ColorPoint tempNode = eventList.last as ColorPoint;
 
       listOfNodes.removeWhere((element) => element.label == tempNode.label);
+      Node nodeToRemove = directedGraph.vertices
+          .firstWhere((element) => element.label == tempNode.label);
 
-      ref.read(remainingNodeProvider.notifier).state = ((numberOfNodes) - listOfNodes.length);
-      listOfComponents.removeWhere((element) => element is ColorPoint && element == tempNode);
+      directedGraph.remove(nodeToRemove);
+
+      ref.read(remainingNodeProvider.notifier).state =
+          ((numberOfNodes) - listOfNodes.length);
+      listOfComponents.removeWhere(
+          (element) => element is ColorPoint && element == tempNode);
       remove(eventList.last);
-      firebaseService.removeNodeEvent(nodeLabel: tempNode.label, gridPosition: tempNode.gridPosition.toString());
+      firebaseService.removeNodeEvent(
+          nodeLabel: tempNode.label,
+          gridPosition: tempNode.gridPosition.toString());
     }
     if (eventList.last is LinePath) {
       LinePath tempLinePath = eventList.last as LinePath;
 
-      Node startNode = listOfNodes.where((element) => element.positionOnGrid == tempLinePath.startPositionGrid).first;
-      Node endNode = listOfNodes.where((element) => element.positionOnGrid == tempLinePath.endPositionGrid).first;
+      Node startNode = listOfNodes
+          .where((element) =>
+              element.positionOnGrid == tempLinePath.startPositionGrid)
+          .first;
+      Node endNode = listOfNodes
+          .where((element) =>
+              element.positionOnGrid == tempLinePath.endPositionGrid)
+          .first;
       removeEdgeBetween(startNode.label, endNode.label);
-      listOfComponents.removeWhere((element) => element is LinePath && element == tempLinePath);
+      listOfComponents.removeWhere(
+          (element) => element is LinePath && element == tempLinePath);
       remove(eventList.last);
     }
 
@@ -167,13 +180,12 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
     listOfNodes.clear();
     removeAll(listOfComponents);
     listOfComponents.clear();
-    this.unDirectedGraph.clear();
     directedGraph.clear();
     ref.read(remainingNodeProvider.notifier).state = numberOfNodes;
     ref.read(cvCheckProvider.notifier).state = false;
     tempPath = null;
     FirebaseAnalytics.instance.logEvent(name: "reset_level", parameters: {
-      "level": cvAnswer.characteristicVector,
+      "level": cvAnswer.characteristicVector.toString(),
       "resetCount": _resetCounter,
     });
 
@@ -181,35 +193,42 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
   }
 
   void removeEdgeBetween(String startNodeLabel, String endNodeLabel) {
-    Node startNode = listOfNodes.where((element) => element.label == startNodeLabel).first;
-    Node endNode = listOfNodes.where((element) => element.label == endNodeLabel).first;
+    Node startNode =
+        listOfNodes.where((element) => element.label == startNodeLabel).first;
+    Node endNode =
+        listOfNodes.where((element) => element.label == endNodeLabel).first;
 
-    unDirectedGraph.removeEdges(startNode, {endNode});
     directedGraph.removeEdges(startNode, {endNode});
-    unDirectedGraph.removeEdges(endNode, {startNode});
+    directedGraph.removeEdges(endNode, {startNode});
 
     listOfComponents.removeWhere((element) =>
         element is LinePath &&
         element.startPositionGrid == startNode.positionOnGrid &&
         element.endPositionGrid == endNode.positionOnGrid);
 
-    firebaseService.removeEdgeBetweenEvent(startNodeLabel: startNodeLabel, endNodeLabel: endNodeLabel);
+    firebaseService.removeEdgeBetweenEvent(
+        startNodeLabel: startNodeLabel, endNodeLabel: endNodeLabel);
   }
 
   @override
-  void onTapUp(int pointerId, TapUpInfo info) {
-    final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
+  void onTapUp(TapUpEvent info) {
+    final position = state.unitSystem.pixelToGrid(info.canvasPosition);
+    // final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
     if (listOfNodes.length < numberOfNodes) {
       if (!insideGrid(position)) return;
       if (isAtNode(position)) return;
-      ref.read(remainingNodeProvider.notifier).state = ((numberOfNodes - 1) - listOfNodes.length);
+      ref.read(remainingNodeProvider.notifier).state =
+          ((numberOfNodes - 1) - listOfNodes.length);
 
-      final ColorPoint pointComponent =
-          ColorPoint(gridPosition: position, state: state, label: nodeLabels[listOfNodes.length]);
+      final ColorPoint pointComponent = ColorPoint(
+          gridPosition: position,
+          state: state,
+          label: nodeLabels[listOfNodes.length]);
 
       add(pointComponent);
 
-      this.children.changePriority(pointComponent, 10);
+      // this.children.changePriority(pointComponent, 10);
+      //TODO: This function is not available anymore? idk what is it used for
 
       listOfComponents.add(pointComponent);
 
@@ -223,20 +242,21 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
       listOfNodes.add(nodeToBeAdded);
 
       FirebaseAnalytics.instance.logEvent(name: "added_node", parameters: {
-        "level": cvAnswer.characteristicVector,
+        "level": cvAnswer.characteristicVector.toString(),
         "position_of_node": position.toString(),
       });
 
-      firebaseService.addNodeEvent(nodeLabel: nodeToBeAdded.label, gridPosition: position.toString());
+      firebaseService.addNodeEvent(
+          nodeLabel: nodeToBeAdded.label, gridPosition: position.toString());
 
-      super.onTapUp(pointerId, info);
+      super.onTapUp(info);
     }
   }
 
   @override
-  void onDragStart(int pointerId, DragStartInfo info) {
-    super.onDragStart(pointerId, info);
-    final position = state.unitSystem.pixelToGrid(info.eventPosition.global);
+  void onDragStart(DragStartEvent info) {
+    super.onDragStart(info);
+    final position = state.unitSystem.pixelToGrid(info.canvasPosition);
     if (!insideGrid(position)) return;
     if (!isAtNode(position)) return;
     lastDragPosition = position;
@@ -244,17 +264,17 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
   }
 
   @override
-  void onDragUpdate(int pointerId, DragUpdateInfo event) {
-    super.onDragUpdate(pointerId, event);
-    final position = state.unitSystem.pixelToGrid(event.eventPosition.global);
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    final position = state.unitSystem.pixelToGrid(event.canvasStartPosition);
     if (!insideGrid(position) || lastDragStart == null) return;
     tempPath = getLineBetween(lastDragStart!, position);
     lastDragPosition = position;
   }
 
   @override
-  void onDragEnd(int pointerId, DragEndInfo event) {
-    super.onDragEnd(pointerId, event);
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
 
     if (!insideGrid(lastDragPosition!)) return;
     if (!isAtNode(lastDragPosition!)) {
@@ -264,7 +284,8 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
 
     if (lastDragPosition != null && lastDragStart != null) {
       Rect originalRect = Rect.fromPoints(
-          state.unitSystem.vectorToOffset(lastDragStart!), state.unitSystem.vectorToOffset(lastDragPosition!));
+          state.unitSystem.vectorToOffset(lastDragStart!),
+          state.unitSystem.vectorToOffset(lastDragPosition!));
 
       Offset startPosition = state.unitSystem.vectorToOffset(lastDragStart!);
       Offset endPosition = state.unitSystem.vectorToOffset(lastDragPosition!);
@@ -287,12 +308,47 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
 
       addNewEdgeBetween();
       checkGraphIsCyclic();
+      //checkGraphIsConnected();
       tempPath = null;
     }
   }
 
+  // void checkGraphIsConnected() {
+  //   if (directedGraph.isConnected()) return;
+  //   Flushbar(
+  //     duration: Duration(seconds: 10),
+  //     boxShadows: [
+  //       BoxShadow(
+  //         offset: Offset(0.5, 0.5),
+  //         blurRadius: 5,
+  //       ),
+  //     ],
+  //     messageText: Text(
+  //       "Graph must be a single connected component",
+  //       textAlign: TextAlign.center,
+  //       style: TextStyle(
+  //         fontSize: 20,
+  //         fontWeight: FontWeight.w700,
+  //         color: Colors.white,
+  //       ),
+  //     ),
+  //     backgroundColor: Colors.grey.shade900,
+  //     borderColor: Colors.yellow,
+  //     margin: EdgeInsets.only(
+  //       top: 25,
+  //       right: 25,
+  //       left: 25,
+  //       bottom: 25,
+  //     ),
+  //     borderRadius: BorderRadius.all(
+  //       Radius.circular(8.0),
+  //     ),
+  //   )..show(context);
+  // }
+
   void checkGraphIsCyclic() {
-    if (unDirectedGraph.isAcyclic) return;
+    print(directedGraph);
+    if (!directedGraph.isCycle()) return;
     Flushbar(
       duration: Duration(seconds: 10),
       boxShadows: [
@@ -325,14 +381,19 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
   }
 
   void addNewEdgeBetween() {
-    Node startNode = listOfNodes.where((element) => element.positionOnGrid == lastDragStart!).first;
-    Node endNode = listOfNodes.where((element) => element.positionOnGrid == lastDragPosition!).first;
+    Node startNode = listOfNodes
+        .where((element) => element.positionOnGrid == lastDragStart!)
+        .first;
+    Node endNode = listOfNodes
+        .where((element) => element.positionOnGrid == lastDragPosition!)
+        .first;
 
     directedGraph.addEdges(startNode, {endNode});
     directedGraph.addEdges(endNode, {startNode});
-    unDirectedGraph.addEdges(startNode, {endNode});
+    // unDirectedGraph.addEdges(startNode, {endNode});
 
-    firebaseService.addEdgeEvent(startNodeLabel: startNode.label, endNodeLabel: endNode.label);
+    firebaseService.addEdgeEvent(
+        startNodeLabel: startNode.label, endNodeLabel: endNode.label);
   }
 
   @override
@@ -352,7 +413,6 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
 
   Map<String, int> calculateCharacteristicVector() {
     try {
-      print("UnDirectedGraph: $unDirectedGraph");
       print("DirectedGraph: $directedGraph");
 
       List<Node> newList = [];
@@ -373,10 +433,14 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
         for (var j = 0; j < newList.length; j++) {
           if (listOfNodes[i] == newList[j]) {
             print(
-              "Path From Node " + listOfNodes[i].label + " To Node " + newList[j].label,
+              "Path From Node " +
+                  listOfNodes[i].label +
+                  " To Node " +
+                  newList[j].label,
             );
           } else {
-            shortestPath = directedGraph.crawler.path(listOfNodes[i], newList[j]);
+            shortestPath =
+                directedGraph.crawler.path(listOfNodes[i], newList[j]);
             print(
               "Path From Node " +
                   listOfNodes[i].label +
@@ -385,8 +449,11 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
                   " is " +
                   shortestPath.toString(),
             );
-            templateCharVector["L" + (shortestPath.length - 1).toString()] =
-                templateCharVector["L" + (shortestPath.length - 1).toString()]! + 1;
+            if (shortestPath.isNotEmpty)
+              templateCharVector["L" + (shortestPath.length - 1).toString()] =
+                  templateCharVector[
+                          "L" + (shortestPath.length - 1).toString()]! +
+                      1;
           }
         }
       }
@@ -404,29 +471,44 @@ class NodeGame extends FlameGame with HasDraggables, HasTappables {
 
   void checkCharVector() {
     _checkCount++;
-    ref.read(isAcyclicProvider.notifier).state = unDirectedGraph.isAcyclic;
-    if (cvAnswer.characteristicVector.toString() == calculateCharacteristicVector().toString()) {
+    print('Connected: ${directedGraph.isConnected()}');
+    print('Has Cycles: ${directedGraph.isCycle()}');
+    if (directedGraph.isConnected()) {
+      ref.read(isConnectedProvider.notifier).state = true;
+    } else {
+      ref.read(isConnectedProvider.notifier).state = false;
+    }
+    if (directedGraph.isCycle()) {
+      ref.read(isAcyclicProvider.notifier).state = false;
+    } else {
+      ref.read(isAcyclicProvider.notifier).state = true;
+    }
+    if (cvAnswer.characteristicVector.toString() ==
+        calculateCharacteristicVector().toString()) {
       ref.read(cvCheckProvider.notifier).state = true;
-      //ref.read(levelDataProvider).levelData[numberOfNodes-4]. =
 
       FirebaseAnalytics.instance.logEvent(name: "checked_answer", parameters: {
-        "level": cvAnswer.characteristicVector,
-        "passedLevel": true,
+        "level": cvAnswer.characteristicVector.toString(),
+        "passedLevel": true.toString(),
         "checkCount": _checkCount,
       });
-      firebaseService.checkAnswerEvent(passLevel: true, checkCount: _checkCount);
+      firebaseService.checkAnswerEvent(
+          passLevel: true, checkCount: _checkCount);
 
       ref.read(levelDataProvider).writeIsSolvedToJson(
           numberOfNodes: numberOfNodes,
-          cvAnswer: CVAnswer(isSolved: true, characteristicVector: cvAnswer.characteristicVector));
+          cvAnswer: CVAnswer(
+              isSolved: true,
+              characteristicVector: cvAnswer.characteristicVector));
     } else {
       ref.read(cvCheckProvider.notifier).state = false;
       FirebaseAnalytics.instance.logEvent(name: "checked_answer", parameters: {
-        "level": cvAnswer.characteristicVector,
-        "passedLevel": false,
+        "level": cvAnswer.characteristicVector.toString(),
+        "passedLevel": false.toString(),
         "checkCount": _checkCount,
       });
-      firebaseService.checkAnswerEvent(passLevel: false, checkCount: _checkCount);
+      firebaseService.checkAnswerEvent(
+          passLevel: false, checkCount: _checkCount);
     }
   }
 }
