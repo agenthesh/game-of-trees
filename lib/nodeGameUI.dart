@@ -7,6 +7,7 @@ import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/nodeGame.dart';
 import 'package:game_of_trees/node_icons_icons.dart';
 import 'package:game_of_trees/services.dart';
+import 'package:game_of_trees/util.dart';
 
 class NodeGameUI extends ConsumerStatefulWidget {
   final NodeGame nodeGame;
@@ -17,7 +18,8 @@ class NodeGameUI extends ConsumerStatefulWidget {
   _NodeGameUIState createState() => _NodeGameUIState();
 }
 
-class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObserver {
+class _NodeGameUIState extends ConsumerState<NodeGameUI>
+    with WidgetsBindingObserver {
   UIScreen currentScreen = UIScreen.gameUI;
 
   void initState() {
@@ -47,10 +49,13 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
         shape: CircleBorder(),
       ),
       child: IconButton(
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity(horizontal: VisualDensity.minimumDensity),
         color: Colors.white,
         icon: Icon(Icons.help_outline),
         onPressed: () {
-          currentScreen = currentScreen == UIScreen.help ? UIScreen.gameUI : UIScreen.help;
+          currentScreen =
+              currentScreen == UIScreen.help ? UIScreen.gameUI : UIScreen.help;
           update();
         },
       ),
@@ -82,7 +87,9 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
         color: Colors.white,
         icon: Icon(NodeIcons.graph),
         onPressed: () {
-          currentScreen = currentScreen == UIScreen.levelInfo ? UIScreen.gameUI : UIScreen.levelInfo;
+          currentScreen = currentScreen == UIScreen.levelInfo
+              ? UIScreen.gameUI
+              : UIScreen.levelInfo;
           update();
         },
       ),
@@ -118,7 +125,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
 
   Widget topControls() {
     return Padding(
-      padding: EdgeInsets.only(top: 35, left: 5, right: 15, bottom: 25),
+      padding: EdgeInsets.only(top: 55, left: 5, right: 15, bottom: 10),
       child: Row(
         children: <Widget>[
           leaveButton(),
@@ -127,6 +134,24 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
           spacer(),
           nodesLeftDisplay(),
         ],
+      ),
+    );
+  }
+
+  Widget floatingCVCard() {
+    return Card(
+      margin: EdgeInsets.zero,
+      color: Colors.white.withOpacity(0.7),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+        child: Text(
+          formatCharacteristicVector(
+            widget.nodeGame.cvAnswer.characteristicVector,
+          ),
+          style: TextStyle(
+            fontSize: 17,
+          ),
+        ),
       ),
     );
   }
@@ -243,6 +268,7 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
     return Column(
       children: <Widget>[
         topControls(),
+        floatingCVCard(),
         Expanded(
           child: IndexedStack(
             children: <Widget>[
@@ -252,13 +278,15 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI> with WidgetsBindingObse
                 update();
               }),
               ScreenLevelInfo(
-                  characteristicVectorAnswer: widget.nodeGame.cvAnswer.characteristicVector,
+                  characteristicVectorAnswer:
+                      widget.nodeGame.cvAnswer.characteristicVector,
                   onDonePress: () {
                     currentScreen = UIScreen.gameUI;
                     update();
                   }),
               AnswerScreen(
-                characteristicVectorAnswer: widget.nodeGame.cvAnswer.characteristicVector,
+                characteristicVectorAnswer:
+                    widget.nodeGame.cvAnswer.characteristicVector,
                 onDonePress: () {
                   currentScreen = UIScreen.gameUI;
                   update();
