@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:game_of_trees/primaryButton.dart';
 import 'package:video_player/video_player.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key, required this.isPhone}) : super(key: key);
@@ -14,54 +13,21 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  late VideoPlayerController _controller;
-
-  bool _isFinishedPlaying = false;
-
-  bool _test = false;
-
-  late Timer _timer;
+  late PageController _pageController;
 
   @override
   void initState() {
-    String assetName = widget.isPhone ? "tutorial-iphone-1" : "tutorial-ipad";
-
-    _timer = Timer(Duration(seconds: 68, milliseconds: 500), () {
-      setState(() {
-        _test = true;
-      });
-    });
-
-    _controller = VideoPlayerController.asset("assets/videos/$assetName.mp4")
-      ..initialize().then((value) {
-        setState(() {});
-        _controller.setPlaybackSpeed(1.25);
-
-        _controller.play();
-        setUpListener(_controller);
-      });
-
     super.initState();
-  }
-
-  void setUpListener(VideoPlayerController controller) {
-    _controller.addListener(() {
-      if (_test) {
-        _controller.pause();
-        setState(() {
-          _isFinishedPlaying = true;
-        });
-      }
-    });
+    _pageController = PageController();
   }
 
   @override
   void dispose() {
-    _timer.cancel();
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
+  int _currentPage = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,24 +38,72 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       body: Stack(
         children: [
-          Center(
-            child: _controller.value.isInitialized
-                ? AspectRatio(
-                    aspectRatio: _controller.value.aspectRatio,
-                    child: VideoPlayer(_controller),
-                  )
-                : CircularProgressIndicator(
-                    color: Colors.yellow,
-                  ),
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (value) {
+              setState(() {
+                _currentPage = value;
+              });
+            },
+            itemCount: 14,
+            itemBuilder: (_, index) {
+              return OnboardingVideos(
+                page: index,
+                isPhone: widget.isPhone,
+              );
+            },
           ),
           Positioned(
-            bottom: 30,
+            bottom: 60,
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Center(
                 child: AnimatedCrossFade(
                   duration: Duration(seconds: 1),
-                  crossFadeState: _isFinishedPlaying
+                  crossFadeState: _currentPage == 13
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  firstChild: SizedBox.shrink(),
+                  secondChild: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      PrimaryButton(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        width: 120,
+                        height: 40,
+                        onPressed: () => _pageController.previousPage(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut),
+                        label: 'Previous',
+                      ),
+                      SizedBox(
+                        width: 20,
+                      ),
+                      PrimaryButton(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        width: 120,
+                        height: 40,
+                        onPressed: () => _pageController.nextPage(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut),
+                        label: 'Next',
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 25,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Center(
+                child: AnimatedCrossFade(
+                  duration: Duration(seconds: 1),
+                  crossFadeState: _currentPage == 13
                       ? CrossFadeState.showFirst
                       : CrossFadeState.showSecond,
                   firstChild: PrimaryButton(
@@ -98,13 +112,70 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     fontWeight: FontWeight.w800,
                     fontSize: 20,
                   ),
-                  secondChild: SizedBox.shrink(),
+                  secondChild: SmoothPageIndicator(
+                    controller: _pageController,
+                    count: 13,
+                    effect: const JumpingDotEffect(
+                      dotWidth: 9,
+                      dotHeight: 9,
+                      activeDotColor: Color(0xFF696B6D),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class OnboardingVideos extends StatefulWidget {
+  const OnboardingVideos({Key? key, required this.page, required this.isPhone})
+      : super(key: key);
+  final int page;
+  final bool isPhone;
+
+  @override
+  State<OnboardingVideos> createState() => _OnboardingVideosState();
+}
+
+class _OnboardingVideosState extends State<OnboardingVideos> {
+  late VideoPlayerController _controller;
+  @override
+  void initState() {
+    String folderName = widget.isPhone ? "phone" : "tab";
+
+    _controller = VideoPlayerController.asset(
+        "assets/videos/$folderName/${(widget.page + 1)}.mp4")
+      ..initialize().then((value) {
+        setState(() {});
+        _controller.setPlaybackSpeed(1);
+
+        _controller.play();
+      });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: _controller.value.isInitialized
+          ? AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: VideoPlayer(_controller),
+            )
+          : CircularProgressIndicator(
+              color: Colors.yellow,
+            ),
     );
   }
 }

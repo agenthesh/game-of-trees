@@ -6,6 +6,7 @@ import 'package:game_of_trees/Providers.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
 import 'package:game_of_trees/mainGameScreen.dart';
 import 'package:game_of_trees/services.dart';
+import 'package:game_of_trees/theme.dart';
 import 'package:game_of_trees/util.dart';
 import 'package:rect_getter/rect_getter.dart';
 
@@ -17,7 +18,8 @@ class NodeSelectorScreen extends ConsumerStatefulWidget {
 }
 
 class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
-  final GlobalKey<RectGetterState> rectGetterKey = RectGetter.createGlobalKey(); //<--Create a key
+  final GlobalKey<RectGetterState> rectGetterKey =
+      RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
   late PageController _pageController;
   late final levelDataNotifier;
@@ -46,22 +48,49 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
     return Stack(
       children: [
         Scaffold(
+          appBar: AppBar(
+            backgroundColor: flexColorSchemeLight.secondary,
+            iconTheme: IconThemeData(color: Colors.white),
+            title: Text(
+              "Node Select",
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 13.0),
+                child: GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, "/help"),
+                  child: Icon(
+                    Icons.help,
+                    color: Colors.white,
+                    size: 25,
+                  ),
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.grey[900],
           body: SafeArea(
-            child: Container(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    height: 200,
+                    height: 150,
                     child: PageView.builder(
                       onPageChanged: (int page) => setState(() {
                         _nodeIndex = page;
                       }),
                       controller: _pageController,
                       scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) =>
-                          nodeCard(numberOfNodes: levelDataNotifier.levelData[index].numberOfNodes),
+                      itemBuilder: (context, index) => nodeCard(
+                          numberOfNodes:
+                              levelDataNotifier.levelData[index].numberOfNodes),
                       itemCount: levelDataNotifier.levelData.length,
                     ),
                   ),
@@ -69,7 +98,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                     height: 40,
                   ),
                   Text(
-                    "Select Number of Nodes",
+                    "Level Select",
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.white,
@@ -87,11 +116,15 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                         padding: const EdgeInsets.all(20),
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
+                        crossAxisCount:
+                            MediaQuery.of(context).size.width > 600 ? 4 : 2,
                         children: List.generate(
-                          levelDataNotifier.levelData[_nodeIndex].listOfVectors.length,
+                          levelDataNotifier
+                              .levelData[_nodeIndex].listOfVectors.length,
                           (index) => levelCard(
-                              cvAnswer: levelDataNotifier.levelData[_nodeIndex].listOfVectors[index], index: index),
+                              cvAnswer: levelDataNotifier
+                                  .levelData[_nodeIndex].listOfVectors[index],
+                              index: index),
                         ),
                       ),
                     ),
@@ -118,7 +151,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
             Text(
               numberOfNodes.toString(),
               style: TextStyle(
-                fontSize: 90,
+                fontSize: 70,
                 color: Colors.grey[900],
                 fontWeight: FontWeight.w900,
               ),
@@ -203,15 +236,18 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
 
   void _onLevelTap({required CVAnswer cvAnswer}) async {
     firebaseService.startNewLevelEvent(
-        numberOfNodes: levelDataNotifier.levelData[_pageController.page!.toInt()].numberOfNodes,
+        numberOfNodes: levelDataNotifier
+            .levelData[_pageController.page!.toInt()].numberOfNodes,
         characteristicVector: cvAnswer.characteristicVector);
 
-    setState(() => rect = RectGetter.getRectFromKey(rectGetterKey)); //<-- set rect to be size of fab
+    setState(() => rect = RectGetter.getRectFromKey(
+        rectGetterKey)); //<-- set rect to be size of fab
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
         //<-- on the next frame...
         setState(
-          () => rect = rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide),
+          () => rect =
+              rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide),
         ); //<-- set rect to be big
         Future.delayed(
           Duration(seconds: 1, milliseconds: 300),
@@ -222,7 +258,8 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
   }
 
   void _goToNextPage({required CVAnswer cvAnswer}) {
-    ref.read(remainingNodeProvider.notifier).state = cvAnswer.characteristicVector.length -
+    ref.read(remainingNodeProvider.notifier).state = cvAnswer
+            .characteristicVector.length -
         1; //this is added here because you cannot change the state of an object during the lifecycle methods of the widget.
     Navigator.of(context)
         .push(
