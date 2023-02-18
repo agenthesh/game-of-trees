@@ -9,7 +9,8 @@ class TutorialDialog extends StatefulWidget {
   State<TutorialDialog> createState() => _TutorialDialogState();
 }
 
-class _TutorialDialogState extends State<TutorialDialog> with SingleTickerProviderStateMixin {
+class _TutorialDialogState extends State<TutorialDialog>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> scaleAnimation;
 
@@ -17,8 +18,10 @@ class _TutorialDialogState extends State<TutorialDialog> with SingleTickerProvid
   void initState() {
     super.initState();
 
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 400));
-    scaleAnimation = CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 400));
+    scaleAnimation =
+        CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
 
     _controller.addListener(() {
       setState(() {});
@@ -39,7 +42,8 @@ class _TutorialDialogState extends State<TutorialDialog> with SingleTickerProvid
       scale: scaleAnimation,
       child: AlertDialog(
         backgroundColor: Colors.grey[900],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))),
         content: Stack(
           children: <Widget>[
             Container(
@@ -86,11 +90,15 @@ class _TutorialDialogState extends State<TutorialDialog> with SingleTickerProvid
                       child: InkWell(
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, "/game");
+                          Navigator.pushNamed(context, "/levelSelector");
                         },
                         borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                        highlightColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.3),
-                        splashColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
+                        highlightColor: Theme.of(context)
+                            .scaffoldBackgroundColor
+                            .withOpacity(0.3),
+                        splashColor: Theme.of(context)
+                            .scaffoldBackgroundColor
+                            .withOpacity(0.6),
                         child: Center(
                             child: AutoSizeText(
                           "No, thanks",
