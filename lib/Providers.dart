@@ -17,4 +17,8 @@ final isAcyclicProvider = StateProvider<bool>(((ref) {
   return true;
 }));
 
+final isConnectedProvider = StateProvider<bool>(((ref) {
+  return true;
+}));
+
 final levelDataProvider = ChangeNotifierProvider((ref) => LevelData());
