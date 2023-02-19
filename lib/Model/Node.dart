@@ -4,7 +4,10 @@ class Node implements Comparable<dynamic> {
   final String label;
   final Vector2 positionOnGrid;
 
-  Node({required this.label, required this.positionOnGrid});
+  Node({
+    required this.label,
+    required this.positionOnGrid,
+  });
 
   @override
   bool operator ==(Object other) =>

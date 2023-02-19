@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_of_trees/gameState.dart';
@@ -9,10 +11,11 @@ class ColorPoint extends PositionComponent {
   final String label;
   final GameState state;
 
-  ColorPoint({required this.gridPosition, required this.state, required this.label});
+  ColorPoint(
+      {required this.gridPosition, required this.state, required this.label});
 
   @override
-  Future<void>? onLoad() {
+  FutureOr<void>? onLoad() {
     mainPaint = Paint();
     mainPaint.color = Colors.yellow;
     pixelPosition = state.unitSystem.gridToPixelFrom(vector: gridPosition);

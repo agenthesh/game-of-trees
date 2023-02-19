@@ -4,7 +4,11 @@ import 'package:game_of_trees/GameUIOverlays/pageIndicator.dart';
 import 'package:game_of_trees/Providers.dart';
 
 class AnswerScreen extends ConsumerStatefulWidget {
-  const AnswerScreen({Key? key, required this.onDonePress, required this.characteristicVectorAnswer}) : super(key: key);
+  const AnswerScreen(
+      {Key? key,
+      required this.onDonePress,
+      required this.characteristicVectorAnswer})
+      : super(key: key);
 
   final Map<String, int> characteristicVectorAnswer;
 
@@ -27,27 +31,33 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
     final Map<String, int> actualCV = ref.watch(cvProvider);
     final bool isCVCorrect = ref.watch(cvCheckProvider);
     final bool isAcyclic = ref.watch(isAcyclicProvider);
+    final bool isConnected = ref.watch(isConnectedProvider);
     return Positioned.fill(
       child: Align(
         alignment: Alignment.topCenter,
         child: Padding(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
+          padding:
+              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
           child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.0)),
             color: Colors.white,
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.9,
               height: MediaQuery.of(context).size.height * 0.6,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 25.0),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 25.0, horizontal: 25.0),
                 child: Column(
                   children: [
                     Text(
                       !isAcyclic
                           ? "Cycles are not allowed!"
-                          : isCVCorrect
-                              ? "Solved!"
-                              : "Try Again!",
+                          : !isConnected
+                              ? 'Graph needs to connected'
+                              : isCVCorrect
+                                  ? "Solved!"
+                                  : "Try Again!",
                       style: TextStyle(
                         color: Colors.grey[900],
                         fontSize: 25,
@@ -63,11 +73,14 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
                           onPageChanged: (page) => setState(() {
                             _currentIndex = page;
                           }),
-                          itemCount: widget.characteristicVectorAnswer.length - 1,
-                          itemBuilder: (context, index) => AnswerIllustrationCard(
-                              userPathCount: actualCV['L$index'] ?? 0,
-                              actualPathCount: widget.characteristicVectorAnswer["L$index"]!,
-                              pathLength: index),
+                          itemCount:
+                              widget.characteristicVectorAnswer.length - 1,
+                          itemBuilder: (context, index) =>
+                              AnswerIllustrationCard(
+                                  userPathCount: actualCV['L$index'] ?? 0,
+                                  actualPathCount: widget
+                                      .characteristicVectorAnswer["L$index"]!,
+                                  pathLength: index),
                         ),
                       ),
                     ),
@@ -75,7 +88,8 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: _buildPageIndicator(widget.characteristicVectorAnswer.length - 1),
+                        children: _buildPageIndicator(
+                            widget.characteristicVectorAnswer.length - 1),
                       ),
                     ),
                     IconButton(
@@ -100,7 +114,9 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
   List<Widget> _buildPageIndicator(int numberOfPages) {
     List<Widget> list = [];
     for (int i = 0; i < numberOfPages; i++) {
-      list.add(i == _currentIndex ? PageIndicator(isActive: true) : PageIndicator(isActive: false));
+      list.add(i == _currentIndex
+          ? PageIndicator(isActive: true)
+          : PageIndicator(isActive: false));
     }
     return list;
   }
@@ -108,7 +124,10 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
 
 class AnswerIllustrationCard extends StatelessWidget {
   const AnswerIllustrationCard(
-      {Key? key, required this.userPathCount, required this.actualPathCount, required this.pathLength})
+      {Key? key,
+      required this.userPathCount,
+      required this.actualPathCount,
+      required this.pathLength})
       : super(key: key);
 
   final int userPathCount;
@@ -123,7 +142,9 @@ class AnswerIllustrationCard extends StatelessWidget {
         Text(
           userPathCount.toString(),
           style: TextStyle(
-            color: userPathCount == actualPathCount ? Colors.green : Colors.red[900],
+            color: userPathCount == actualPathCount
+                ? Colors.green
+                : Colors.red[900],
             fontSize: 30,
             fontWeight: FontWeight.w900,
           ),

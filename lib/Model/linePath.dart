@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
+import 'package:flame/events.dart';
 import 'package:flame/extensions.dart';
+import 'package:flutter/material.dart';
 import 'package:game_of_trees/Model/Node.dart';
 import 'package:game_of_trees/gameState.dart';
 import 'package:game_of_trees/nodeGame.dart';
 import 'package:game_of_trees/util.dart';
 
-class LinePath extends PositionComponent with Tappable, HasGameRef<NodeGame> {
+class LinePath extends PositionComponent
+    with TapCallbacks, HasGameRef<NodeGame> {
   final Offset startPosition;
   final Offset endPosition;
   late Vector2 startPositionGrid;
@@ -33,7 +37,7 @@ class LinePath extends PositionComponent with Tappable, HasGameRef<NodeGame> {
   }
 
   @override
-  Future<void>? onLoad() {
+  FutureOr<void>? onLoad() {
     mainPaint = Paint();
     mainPaint.color = getRandomColor().withOpacity(0.8);
     mainPaint.strokeWidth = 5.0;
@@ -54,9 +58,14 @@ class LinePath extends PositionComponent with Tappable, HasGameRef<NodeGame> {
     if (now - lastTapDown < 400) {
       gameRef.listOfComponents.remove(this);
       gameRef.eventList.remove(this);
-      Node startNode = gameRef.listOfNodes.where((element) => element.positionOnGrid == this.startPositionGrid).first;
-      Node endNode = gameRef.listOfNodes.where((element) => element.positionOnGrid == this.endPositionGrid).first;
+      Node startNode = gameRef.listOfNodes
+          .where((element) => element.positionOnGrid == this.startPositionGrid)
+          .first;
+      Node endNode = gameRef.listOfNodes
+          .where((element) => element.positionOnGrid == this.endPositionGrid)
+          .first;
       gameRef.removeEdgeBetween(startNode.label, endNode.label);
+      gameRef.removeEdgeBetween(endNode.label, startNode.label);
       removeFromParent();
     }
     lastTapDown = now;
