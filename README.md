@@ -10,15 +10,15 @@ Welcome to **Game of Trees**, a collaborative project developed by Hussain Surti
 
 ## Screenshots
 
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/1.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/2.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/3.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/4.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/5.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/6.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/7.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/8.png" alt="Screenshot" width="500" />
-<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/9.png" alt="Screenshot" width="500" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/1.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/2.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/3.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/4.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/5.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/6.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/7.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/8.png" alt="Screenshot" width="100" />
+<img src = "https://github.com/agenthesh/game-of-trees/blob/master/assets/images/screenshots/9.png" alt="Screenshot" width="100" />
 
 ### Collaborators
 
