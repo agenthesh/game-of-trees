@@ -142,10 +142,20 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
       ColorPoint tempNode = eventList.last as ColorPoint;
 
       listOfNodes.removeWhere((element) => element.label == tempNode.label);
-      Node nodeToRemove = directedGraph.vertices
-          .firstWhere((element) => element.label == tempNode.label);
+      if (directedGraph.vertices.isNotEmpty) {
+        //We cannot add vertices to the directed graph, vertices are only added when you add an edge.
+        try {
+          Node nodeToRemove = directedGraph.vertices.firstWhere(
+            (element) => element.label == tempNode.label,
+          );
 
-      directedGraph.remove(nodeToRemove);
+          directedGraph.remove(nodeToRemove);
+        } catch (e) {
+          if (e is StateError) {
+            print('handled');
+          }
+        }
+      }
 
       ref.read(remainingNodeProvider.notifier).state =
           ((numberOfNodes) - listOfNodes.length);
