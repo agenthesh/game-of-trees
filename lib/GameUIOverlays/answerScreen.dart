@@ -32,77 +32,72 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
     final bool isCVCorrect = ref.watch(cvCheckProvider);
     final bool isAcyclic = ref.watch(isAcyclicProvider);
     final bool isConnected = ref.watch(isConnectedProvider);
-    return Positioned.fill(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding:
-              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
-          child: Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25.0)),
-            color: Colors.white,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 25.0, horizontal: 25.0),
-                child: Column(
-                  children: [
-                    Text(
-                      !isAcyclic
-                          ? "Cycles are not allowed!"
-                          : !isConnected
-                              ? 'Graph needs to connected'
-                              : isCVCorrect
-                                  ? "Solved!"
-                                  : "Try Again!",
-                      style: TextStyle(
-                        color: Colors.grey[900],
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
+          color: Colors.white,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 25.0, horizontal: 25.0),
+              child: Column(
+                children: [
+                  Text(
+                    !isAcyclic
+                        ? "Cycles are not allowed!"
+                        : !isConnected
+                            ? 'Graph needs to connected'
+                            : isCVCorrect
+                                ? "Solved!"
+                                : "Try Again!",
+                    style: TextStyle(
+                      color: Colors.grey[900],
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Expanded(
+                    child: SizedBox(
+                      child: PageView.builder(
+                        onPageChanged: (page) => setState(() {
+                          _currentIndex = page;
+                        }),
+                        itemCount: widget.characteristicVectorAnswer.length - 1,
+                        itemBuilder: (context, index) => AnswerIllustrationCard(
+                            userPathCount: actualCV['L$index'] ?? 0,
+                            actualPathCount:
+                                widget.characteristicVectorAnswer["L$index"]!,
+                            pathLength: index),
                       ),
                     ),
-                    SizedBox(
-                      height: 15,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _buildPageIndicator(
+                          widget.characteristicVectorAnswer.length - 1),
                     ),
-                    Expanded(
-                      child: SizedBox(
-                        child: PageView.builder(
-                          onPageChanged: (page) => setState(() {
-                            _currentIndex = page;
-                          }),
-                          itemCount:
-                              widget.characteristicVectorAnswer.length - 1,
-                          itemBuilder: (context, index) =>
-                              AnswerIllustrationCard(
-                                  userPathCount: actualCV['L$index'] ?? 0,
-                                  actualPathCount: widget
-                                      .characteristicVectorAnswer["L$index"]!,
-                                  pathLength: index),
-                        ),
-                      ),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => widget.onDonePress(),
+                    icon: Icon(
+                      Icons.task_alt,
+                      size: 40,
+                      color: Colors.yellow,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: _buildPageIndicator(
-                            widget.characteristicVectorAnswer.length - 1),
-                      ),
-                    ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => widget.onDonePress(),
-                      icon: Icon(
-                        Icons.task_alt,
-                        size: 40,
-                        color: Colors.yellow,
-                      ),
-                    )
-                  ],
-                ),
+                  )
+                ],
               ),
             ),
           ),

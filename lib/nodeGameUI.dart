@@ -157,110 +157,108 @@ class _NodeGameUIState extends ConsumerState<NodeGameUI>
   }
 
   Widget buildGameUI() {
-    return Positioned.fill(
-      child: Column(
-        children: <Widget>[
-          spacer(),
-          Padding(
-              padding: EdgeInsets.only(bottom: 20, left: 10, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Material(
-                    color: Colors.transparent,
-                    child: Ink(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [Colors.yellow, Colors.yellow[700]!],
-                        ),
-                        shape: BoxShape.circle,
+    return Column(
+      children: <Widget>[
+        spacer(),
+        Padding(
+            padding: EdgeInsets.only(bottom: 20, left: 10, right: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Colors.yellow, Colors.yellow[700]!],
                       ),
-                      child: InkWell(
-                        onTap: () => widget.nodeGame.undoEvent(),
-                        customBorder: CircleBorder(),
-                        child: Center(
-                          child: Icon(
-                            Icons.undo,
-                            size: 22,
-                            color: Colors.grey[900],
-                          ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: InkWell(
+                      onTap: () => widget.nodeGame.undoEvent(),
+                      customBorder: CircleBorder(),
+                      child: Center(
+                        child: Icon(
+                          Icons.undo,
+                          size: 22,
+                          color: Colors.grey[900],
                         ),
-                        splashColor: Colors.yellow[300],
                       ),
+                      splashColor: Colors.yellow[300],
                     ),
                   ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: Ink(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [Colors.yellow, Colors.yellow[700]!],
-                        ),
-                        shape: BoxShape.circle,
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Colors.yellow, Colors.yellow[700]!],
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          currentScreen = UIScreen.cvScreen;
-                          widget.nodeGame.checkCharVector();
-                          update();
-                        },
-                        customBorder: CircleBorder(),
-                        child: Center(
-                          child: Icon(
-                            Icons.check,
-                            size: 50,
-                            color: Colors.grey[900],
-                          ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        currentScreen = UIScreen.cvScreen;
+                        widget.nodeGame.checkCharVector();
+                        update();
+                      },
+                      customBorder: CircleBorder(),
+                      child: Center(
+                        child: Icon(
+                          Icons.check,
+                          size: 50,
+                          color: Colors.grey[900],
                         ),
-                        splashColor: Colors.pink[300],
                       ),
+                      splashColor: Colors.pink[300],
                     ),
                   ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: Ink(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [Colors.yellow, Colors.yellow[700]!],
-                        ),
-                        shape: BoxShape.circle,
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Colors.yellow, Colors.yellow[700]!],
                       ),
-                      child: InkWell(
-                        onTap: () => widget.nodeGame.resetBoard(),
-                        customBorder: CircleBorder(),
-                        child: Center(
-                          child: Icon(
-                            Icons.refresh,
-                            size: 22,
-                            color: Colors.grey[900],
-                          ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: InkWell(
+                      onTap: () => widget.nodeGame.resetBoard(),
+                      customBorder: CircleBorder(),
+                      child: Center(
+                        child: Icon(
+                          Icons.refresh,
+                          size: 22,
+                          color: Colors.grey[900],
                         ),
-                        splashColor: Colors.pink[300],
                       ),
+                      splashColor: Colors.pink[300],
                     ),
                   ),
-                ],
-              ))
-        ],
-      ),
+                ),
+              ],
+            ))
+      ],
     );
   }
 

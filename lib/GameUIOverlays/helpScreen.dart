@@ -21,62 +21,62 @@ class _HelpScreenState extends State<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
-          child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
-            color: Colors.white,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.7,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 25.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "Game of Trees Basics",
-                      style: TextStyle(
-                        color: Colors.grey[900],
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.0),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
+          color: Colors.white,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 25.0, horizontal: 25.0),
+              child: Column(
+                children: [
+                  Text(
+                    "Game of Trees Basics",
+                    style: TextStyle(
+                      color: Colors.grey[900],
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Expanded(
+                    child: PageView.builder(
+                      onPageChanged: (page) => setState(() {
+                        _currentIndex = page;
+                      }),
+                      itemCount: 3,
+                      itemBuilder: (context, index) => HelpIllustrationCard(
+                        text: _helpArray[index],
+                        index: index + 1,
                       ),
                     ),
-                    SizedBox(
-                      height: 15,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _buildPageIndicator(3),
                     ),
-                    Expanded(
-                      child: PageView.builder(
-                        onPageChanged: (page) => setState(() {
-                          _currentIndex = page;
-                        }),
-                        itemCount: 3,
-                        itemBuilder: (context, index) => HelpIllustrationCard(
-                          text: _helpArray[index],
-                          index: index + 1,
-                        ),
-                      ),
+                  ),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => widget.onDonePress(),
+                    icon: Icon(
+                      Icons.task_alt,
+                      size: 40,
+                      color: Colors.yellow,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: _buildPageIndicator(3),
-                      ),
-                    ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => widget.onDonePress(),
-                      icon: Icon(
-                        Icons.task_alt,
-                        size: 40,
-                        color: Colors.yellow,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -88,14 +88,18 @@ class _HelpScreenState extends State<HelpScreen> {
   List<Widget> _buildPageIndicator(int numberOfPages) {
     List<Widget> list = [];
     for (int i = 0; i < numberOfPages; i++) {
-      list.add(i == _currentIndex ? PageIndicator(isActive: true) : PageIndicator(isActive: false));
+      list.add(i == _currentIndex
+          ? PageIndicator(isActive: true)
+          : PageIndicator(isActive: false));
     }
     return list;
   }
 }
 
 class HelpIllustrationCard extends StatelessWidget {
-  const HelpIllustrationCard({Key? key, required this.text, required this.index}) : super(key: key);
+  const HelpIllustrationCard(
+      {Key? key, required this.text, required this.index})
+      : super(key: key);
 
   final int index;
   final String text;
