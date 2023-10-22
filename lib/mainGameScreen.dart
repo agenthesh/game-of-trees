@@ -32,7 +32,7 @@ class _MainGameScreenState extends ConsumerState<MainGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
+    return PopScope(
       child: Scaffold(
         backgroundColor: Colors.white,
         body: GameWidget(
@@ -45,7 +45,7 @@ class _MainGameScreenState extends ConsumerState<MainGameScreen> {
           initialActiveOverlays: ["gameUI"],
         ),
       ),
-      onWillPop: () async => false, //Prevent leaving by back press
+      onPopInvoked: (flag) async => false, //Prevent leaving by back press
     );
   }
 }
