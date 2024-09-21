@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_of_trees/primaryButton.dart';
-import 'package:video_player/video_player.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:video_player/video_player.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key, required this.isPhone}) : super(key: key);
@@ -36,100 +36,163 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Color(0xFF1E1E1E),
       ),
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: (value) {
-              setState(() {
-                _currentPage = value;
-              });
-            },
-            itemCount: 14,
-            itemBuilder: (_, index) {
-              return OnboardingVideos(
-                page: index,
-                isPhone: widget.isPhone,
-              );
-            },
-          ),
-          Positioned(
-            bottom: 60,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Center(
-                child: AnimatedCrossFade(
-                  duration: Duration(seconds: 1),
-                  crossFadeState: _currentPage == 13
-                      ? CrossFadeState.showFirst
-                      : CrossFadeState.showSecond,
-                  firstChild: SizedBox.shrink(),
-                  secondChild: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      PrimaryButton(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        width: 120,
-                        height: 40,
-                        onPressed: () => _pageController.previousPage(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut),
-                        label: 'Previous',
-                      ),
-                      SizedBox(
-                        width: 20,
-                      ),
-                      PrimaryButton(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        width: 120,
-                        height: 40,
-                        onPressed: () => _pageController.nextPage(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut),
-                        label: 'Next',
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 25,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Center(
-                child: AnimatedCrossFade(
-                  duration: Duration(seconds: 1),
-                  crossFadeState: _currentPage == 13
-                      ? CrossFadeState.showFirst
-                      : CrossFadeState.showSecond,
-                  firstChild: PrimaryButton(
-                    onPressed: () => Navigator.pop(context),
-                    label: "Let's start playing!",
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                  ),
-                  secondChild: SmoothPageIndicator(
-                    controller: _pageController,
-                    count: 13,
-                    effect: const JumpingDotEffect(
-                      dotWidth: 9,
-                      dotHeight: 9,
-                      activeDotColor: Color(0xFF696B6D),
+      body: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (value) {
+          setState(() {
+            _currentPage = value;
+          });
+        },
+        itemCount: 14,
+        itemBuilder: (_, index) {
+          return OnboardingVideos(
+            page: index,
+            isPhone: widget.isPhone,
+          );
+        },
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          height: 100,
+          child: Column(
+            children: [
+              AnimatedCrossFade(
+                duration: Duration(seconds: 1),
+                crossFadeState: _currentPage == 13
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                firstChild: SizedBox.shrink(),
+                secondChild: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    PrimaryButton(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      width: 120,
+                      height: 40,
+                      onPressed: () => _pageController.previousPage(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut),
+                      label: 'Previous',
                     ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    PrimaryButton(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      width: 120,
+                      height: 40,
+                      onPressed: () => _pageController.nextPage(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut),
+                      label: 'Next',
+                    ),
+                  ],
+                ),
+              ),
+              Spacer(),
+              AnimatedCrossFade(
+                duration: Duration(seconds: 1),
+                crossFadeState: _currentPage == 13
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                firstChild: PrimaryButton(
+                  onPressed: () => Navigator.pop(context),
+                  label: "Let's start playing!",
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                ),
+                secondChild: SmoothPageIndicator(
+                  controller: _pageController,
+                  count: 13,
+                  effect: const JumpingDotEffect(
+                    dotWidth: 9,
+                    dotHeight: 9,
+                    activeDotColor: Color(0xFF696B6D),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+// Positioned(
+//             bottom = 60,
+//             child = SizedBox(
+//               width: MediaQuery.of(context).size.width,
+//               child: Center(
+//                 child: AnimatedCrossFade(
+//                   duration: Duration(seconds: 1),
+//                   crossFadeState: _currentPage == 13
+//                       ? CrossFadeState.showFirst
+//                       : CrossFadeState.showSecond,
+//                   firstChild: SizedBox.shrink(),
+//                   secondChild: Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                     children: [
+//                       PrimaryButton(
+//                         fontSize: 17,
+//                         fontWeight: FontWeight.w600,
+//                         width: 120,
+//                         height: 40,
+//                         onPressed: () => _pageController.previousPage(
+//                             duration: const Duration(milliseconds: 400),
+//                             curve: Curves.easeInOut),
+//                         label: 'Previous',
+//                       ),
+//                       SizedBox(
+//                         width: 20,
+//                       ),
+//                       PrimaryButton(
+//                         fontSize: 17,
+//                         fontWeight: FontWeight.w600,
+//                         width: 120,
+//                         height: 40,
+//                         onPressed: () => _pageController.nextPage(
+//                             duration: const Duration(milliseconds: 400),
+//                             curve: Curves.easeInOut),
+//                         label: 'Next',
+//                       )
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+// Positioned(
+//   bottom: 25,
+//   child: SizedBox(
+//     width: MediaQuery.of(context).size.width,
+//     child: Center(
+//       child: AnimatedCrossFade(
+//         duration: Duration(seconds: 1),
+//         crossFadeState: _currentPage == 13
+//             ? CrossFadeState.showFirst
+//             : CrossFadeState.showSecond,
+//         firstChild: PrimaryButton(
+//           onPressed: () => Navigator.pop(context),
+//           label: "Let's start playing!",
+//           fontWeight: FontWeight.w800,
+//           fontSize: 20,
+//         ),
+//         secondChild: SmoothPageIndicator(
+//           controller: _pageController,
+//           count: 13,
+//           effect: const JumpingDotEffect(
+//             dotWidth: 9,
+//             dotHeight: 9,
+//             activeDotColor: Color(0xFF696B6D),
+//           ),
+//         ),
+//       ),
+//     ),
+//   ),
+// ),
 
 class OnboardingVideos extends StatefulWidget {
   const OnboardingVideos({Key? key, required this.page, required this.isPhone})

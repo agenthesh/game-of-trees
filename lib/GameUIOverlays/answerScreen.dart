@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/GameUIOverlays/pageIndicator.dart';
 import 'package:game_of_trees/Providers.dart';
+import 'package:game_of_trees/fadeRouteBuilder.dart';
+import 'package:game_of_trees/mainGameScreen.dart';
+import 'package:game_of_trees/primaryButton.dart';
+import 'package:game_of_trees/state/levels/level_data_notifier.dart';
 
 class AnswerScreen extends ConsumerStatefulWidget {
   const AnswerScreen(
@@ -32,6 +36,7 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
     final bool isCVCorrect = ref.watch(cvCheckProvider);
     final bool isAcyclic = ref.watch(isAcyclicProvider);
     final bool isConnected = ref.watch(isConnectedProvider);
+    final nextLevel = ref.watch(levelDataNotifierProvider).nextLevel;
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
@@ -88,15 +93,32 @@ class _AnswerScreenState extends ConsumerState<AnswerScreen> {
                           widget.characteristicVectorAnswer.length - 1),
                     ),
                   ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => widget.onDonePress(),
-                    icon: Icon(
-                      Icons.task_alt,
-                      size: 40,
-                      color: Colors.yellow,
-                    ),
-                  )
+                  isCVCorrect
+                      ? PrimaryButton(
+                          label: nextLevel != null ? 'Next Level' : 'Finish',
+                          onPressed: () {
+                            if (nextLevel != null)
+                              Navigator.of(context).push(
+                                FadeRouteBuilder(
+                                  page: MainGameScreen(
+                                    cvAnswer: nextLevel,
+                                  ),
+                                ),
+                              );
+                            else {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        )
+                      : IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => widget.onDonePress(),
+                          icon: Icon(
+                            Icons.task_alt,
+                            size: 40,
+                            color: Colors.yellow,
+                          ),
+                        )
                 ],
               ),
             ),

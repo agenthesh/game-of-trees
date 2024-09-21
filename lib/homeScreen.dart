@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/AgeDialog.dart';
-import 'package:game_of_trees/Providers.dart';
-import 'package:game_of_trees/TutorialDialog.dart';
 import 'package:game_of_trees/fadeRouteBuilder.dart';
 import 'package:game_of_trees/nodeSelectorScreen.dart';
+import 'package:game_of_trees/state/levels/level_data_notifier.dart';
 import 'package:rect_getter/rect_getter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,12 +15,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final GlobalKey<RectGetterState> rectGetterKey = RectGetter.createGlobalKey(); //<--Create a key
+  final GlobalKey<RectGetterState> rectGetterKey =
+      RectGetter.createGlobalKey(); //<--Create a key
   Rect? rect;
 
   @override
   void initState() {
-    ref.read(levelDataProvider).readFromAppDirectory();
+    ref.read(levelDataNotifierProvider.notifier).readFromAppDirectory();
     super.initState();
   }
 
@@ -83,10 +83,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           )),
                           elevation: MaterialStateProperty.all(40.0),
                           shape: MaterialStateProperty.all(CircleBorder()),
-                          backgroundColor: MaterialStateProperty.all(Colors.grey[900]), // <-- Button color
-                          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          backgroundColor: MaterialStateProperty.all(
+                              Colors.grey[900]), // <-- Button color
+                          overlayColor:
+                              MaterialStateProperty.resolveWith<Color?>(
                             (states) {
-                              if (states.contains(MaterialState.pressed)) return Colors.grey[900]; // <-- Splash color
+                              if (states.contains(MaterialState.pressed))
+                                return Colors.grey[900];
+                              return null; // <-- Splash color
                             },
                           ),
                         ),
@@ -95,14 +99,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.05),
+                      padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).size.height * 0.05),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
                             iconSize: 50,
-                            onPressed: () => Navigator.pushNamed(context, "/help"),
+                            onPressed: () =>
+                                Navigator.pushNamed(context, "/help"),
                             icon: Icon(
                               Icons.help,
                               color: Colors.grey[900],
@@ -163,18 +169,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (!prefs.containsKey("userID")) {
       showDialog(context: context, builder: (context) => AgeDialog());
     } else {
-      setState(() => rect = RectGetter.getRectFromKey(rectGetterKey)); //<-- set rect to be size of fab
+      setState(() => rect = RectGetter.getRectFromKey(
+          rectGetterKey)); //<-- set rect to be size of fab
       WidgetsBinding.instance.addPostFrameCallback(
         (_) {
           //<-- on the next frame...
-          setState(() => rect = rect!.inflate(1.3 * MediaQuery.of(context).size.longestSide)); //<-- set rect to be big
-          Future.delayed(Duration(seconds: 1, milliseconds: 300), _goToNextPage); //<-- after delay, go to next page
+          setState(() => rect = rect!.inflate(1.3 *
+              MediaQuery.of(context)
+                  .size
+                  .longestSide)); //<-- set rect to be big
+          Future.delayed(Duration(seconds: 1, milliseconds: 300),
+              _goToNextPage); //<-- after delay, go to next page
         },
       );
     }
   }
 
   void _goToNextPage() {
-    Navigator.of(context).push(FadeRouteBuilder(page: NodeSelectorScreen())).then((_) => setState(() => rect = null));
+    Navigator.of(context)
+        .push(FadeRouteBuilder(page: NodeSelectorScreen()))
+        .then((_) => setState(() => rect = null));
   }
 }

@@ -6,6 +6,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_of_trees/Model/CVAnswer.dart';
@@ -13,8 +14,10 @@ import 'package:game_of_trees/Model/Node.dart';
 import 'package:game_of_trees/Model/colorPoint.dart';
 import 'package:game_of_trees/Model/linePath.dart';
 import 'package:game_of_trees/Providers.dart';
+import 'package:game_of_trees/constants/audio.dart';
+import 'package:game_of_trees/queue.dart';
 import 'package:game_of_trees/services.dart';
-import 'package:game_of_trees/temp2.dart';
+import 'package:game_of_trees/state/levels/level_data_notifier.dart';
 import 'package:game_of_trees/util.dart';
 
 import 'Model/unitSystem.dart';
@@ -237,8 +240,8 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
 
       add(pointComponent);
 
-      // this.children.changePriority(pointComponent, 10);
-      //TODO: This function is not available anymore? idk what is it used for
+      pointComponent.priority = 100;
+      //this allows the circles to be on top of the lines.
 
       listOfComponents.add(pointComponent);
 
@@ -255,6 +258,8 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
         "level": cvAnswer.characteristicVector.toString(),
         "position_of_node": position.toString(),
       });
+
+      FlameAudio.play(AppAudio.placingNodes);
 
       firebaseService.addNodeEvent(
           nodeLabel: nodeToBeAdded.label, gridPosition: position.toString());
@@ -360,7 +365,8 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
     print(directedGraph);
     if (!directedGraph.isCycle()) return;
     Flushbar(
-      duration: Duration(seconds: 10),
+      flushbarPosition: FlushbarPosition.TOP,
+      duration: Duration(seconds: 3),
       boxShadows: [
         BoxShadow(
           offset: Offset(0.5, 0.5),
@@ -404,6 +410,8 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
 
     firebaseService.addEdgeEvent(
         startNodeLabel: startNode.label, endNodeLabel: endNode.label);
+
+    FlameAudio.play(AppAudio.connectNodes);
   }
 
   @override
@@ -505,11 +513,14 @@ class NodeGame extends FlameGame with TapCallbacks, DragCallbacks {
       firebaseService.checkAnswerEvent(
           passLevel: true, checkCount: _checkCount);
 
-      ref.read(levelDataProvider).writeIsSolvedToJson(
-          numberOfNodes: numberOfNodes,
-          cvAnswer: CVAnswer(
+      FlameAudio.play(AppAudio.levelComplete);
+
+      ref.read(levelDataNotifierProvider.notifier).writeIsSolvedToJson(
+            cvAnswer: CVAnswer(
               isSolved: true,
-              characteristicVector: cvAnswer.characteristicVector));
+              characteristicVector: cvAnswer.characteristicVector,
+            ),
+          );
     } else {
       ref.read(cvCheckProvider.notifier).state = false;
       FirebaseAnalytics.instance.logEvent(name: "checked_answer", parameters: {

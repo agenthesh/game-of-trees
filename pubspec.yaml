@@ -3,10 +3,10 @@ description: Node Based Connection Game
 
 publish_to: "none"
 
-version: 0.0.1+19
+version: 1.0.0+29
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: "^3.0.0"
 
 dependencies:
   flutter:
@@ -30,10 +30,18 @@ dependencies:
   video_player: ^2.4.5
   flutter_native_splash: ^2.2.3+1
   another_flushbar: ^1.10.29
+  waveform_flutter: ^1.0.1
+  flame_audio: ^2.1.8
+  riverpod_annotation: ^2.1.1
+  freezed_annotation: ^2.4.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: ^2.3.3
+  riverpod_generator: ^2.2.1
+  freezed: ^2.5.1
+  json_serializable: ^6.7.1
 
 flutter:
   uses-material-design: true
@@ -45,6 +53,7 @@ flutter:
     - assets/videos/
     - assets/videos/phone/
     - assets/videos/tab/
+    - assets/audio/
   fonts:
     - family: NodeIcons
       fonts:
