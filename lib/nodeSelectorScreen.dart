@@ -75,7 +75,7 @@ class _NodeSelectorScreenState extends ConsumerState<NodeSelectorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    height: 150,
+                    height: 170,
                     child: PageView.builder(
                       onPageChanged: (int page) {
                         final numberOfNodes =

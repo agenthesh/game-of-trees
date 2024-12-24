@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class NodeCard extends StatelessWidget {
@@ -15,7 +16,7 @@ class NodeCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            AutoSizeText(
               numberOfNodes.toString(),
               style: TextStyle(
                 fontSize: 70,
